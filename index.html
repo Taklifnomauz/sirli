@@ -210,6 +210,66 @@ function drawRose(t){
 }
 function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2)drawRose(t);raf=requestAnimationFrame(animate)}
 function clearStages(){stageTimers.forEach(clearTimeout);stageTimers=[]}
+
+const translations={
+ uz:{
+  link:'✦ LINK YARATISH',dots:'NUQTALAR',music:'♫ MUSIQA',musicOn:'♫ MUSIQA YOQILDI',
+  replay:'QAYTADAN',genTitle:'✦ SHAXSIY SOVG‘A YARATISH ✦',
+  nameLabel:'Kimga yubormoqchisiz? Ismini yozing',namePlaceholder:'Masalan: Madina',
+  messageLabel:'Unga atalgan xabar',messagePlaceholder:'Yurakdan chiqqan so‘zlaringiz...',
+  modeLabel:'Animatsiya ko‘rinishi',flowerLabel:'Gul turini tanlang',
+  colorLabel:'Gul rangini tanlang',langLabel:'Tilni tanlang',
+  create:'HAVOLA YARATISH ✦',ready:'TAYYOR SHAXSIY HAVOLA',
+  copy:'HAVOLANI NUSXALASH',copyHelp:'Havolani nusxalab, Telegram yoki Instagram orqali yuboring.',
+  copied:'Havola nusxalandi! Endi yuborishingiz mumkin ✓',copyFallback:'Havolani belgilang va Copy qiling.',
+  defaultMessage:'Bu gul aynan sen uchun ❤️'
+ },
+ ru:{
+  link:'✦ СОЗДАТЬ ССЫЛКУ',dots:'ТОЧКИ',music:'♫ МУЗЫКА',musicOn:'♫ МУЗЫКА ВКЛЮЧЕНА',
+  replay:'ПОВТОРИТЬ',genTitle:'✦ СОЗДАТЬ ЛИЧНЫЙ ПОДАРОК ✦',
+  nameLabel:'Кому хотите отправить? Введите имя',namePlaceholder:'Например: Мадина',
+  messageLabel:'Ваше послание для неё',messagePlaceholder:'Слова от всего сердца...',
+  modeLabel:'Стиль анимации',flowerLabel:'Выберите цветок',
+  colorLabel:'Выберите цвет цветка',langLabel:'Выберите язык',
+  create:'СОЗДАТЬ ССЫЛКУ ✦',ready:'ВАША ЛИЧНАЯ ССЫЛКА',
+  copy:'СКОПИРОВАТЬ ССЫЛКУ',copyHelp:'Скопируйте ссылку и отправьте через Telegram или Instagram.',
+  copied:'Ссылка скопирована! Теперь можно отправить ✓',copyFallback:'Выделите ссылку и нажмите Copy.',
+  defaultMessage:'Этот цветок именно для тебя ❤️'
+ },
+ en:{
+  link:'✦ CREATE LINK',dots:'PARTICLES',music:'♫ MUSIC',musicOn:'♫ MUSIC ON',
+  replay:'REPLAY',genTitle:'✦ CREATE A PERSONAL GIFT ✦',
+  nameLabel:'Who is it for? Enter a name',namePlaceholder:'For example: Madina',
+  messageLabel:'Your personal message',messagePlaceholder:'Write something from the heart...',
+  modeLabel:'Animation style',flowerLabel:'Choose a flower',
+  colorLabel:'Choose flower color',langLabel:'Choose language',
+  create:'CREATE LINK ✦',ready:'YOUR PERSONAL LINK',
+  copy:'COPY LINK',copyHelp:'Copy the link and send it via Telegram or Instagram.',
+  copied:'Link copied! You can send it now ✓',copyFallback:'Select the link and press Copy.',
+  defaultMessage:'This flower is just for you ❤️'
+ }
+};
+function applyLanguage(){
+ const t=translations[uiLang]||translations.uz;
+ $('openGenerator').textContent=t.link;
+ $('ascii').textContent=mode==='dots'?(uiLang==='uz'?'NUQTALAR':uiLang==='ru'?'ТОЧКИ':'PARTICLES'):'# % ^ 0 1';
+ $('voice').textContent=bgMusic && !bgMusic.paused?t.musicOn:t.music;
+ $('replay').textContent=t.replay;
+ document.querySelector('.gen-title').textContent=t.genTitle;
+ document.querySelector('label[for="genName"]').textContent=t.nameLabel;
+ $('genName').placeholder=t.namePlaceholder;
+ document.querySelector('label[for="genMessage"]').textContent=t.messageLabel;
+ $('genMessage').placeholder=t.messagePlaceholder;
+ document.querySelectorAll('.generator-card > label')[2].textContent=t.modeLabel;
+ document.querySelector('label[for="genFlower"]').textContent=t.flowerLabel;
+ document.querySelector('label[for="genColor"]').textContent=t.colorLabel;
+ document.querySelector('label[for="genLang"]').textContent=t.langLabel;
+ $('createLink').textContent=t.create;
+ document.querySelector('.generated-caption').textContent=t.ready;
+ $('copyLink').textContent=t.copy;
+ if(!$('copyStatus').dataset.changed) $('copyStatus').textContent=t.copyHelp;
+}
+
 function run(){
  clearStages();
  phase=0;
@@ -218,7 +278,7 @@ function run(){
  $('bottomname').classList.remove('show');
  $('brandMark').classList.remove('show');
  const params=new URLSearchParams(location.search);
- const n=(params.get('name')||'Sen').trim()||'Sen';
+ const n=(params.get('name')||'Madina').trim()||'Madina';
  $('scriptname').textContent=n;
  $('bottomname').textContent=n;
  stageTimers.push(setTimeout(()=>$('envelope').classList.add('show'),300));
@@ -233,10 +293,10 @@ function run(){
  },10800));
 }
 $('replay').addEventListener('click',run);
-$('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii')});
+$('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii');applyLanguage()});
 const bgMusic=$('bgMusic');
 $('voice').addEventListener('click',async()=>{
- if(bgMusic.paused){try{await bgMusic.play();$('voice').textContent='♫ MUSIQA ON';$('voice').classList.add('active')}catch(e){$('voice').textContent='MUSIC.MP3 KERAK'}}else{bgMusic.pause();$('voice').textContent='♫ MUSIQA';$('voice').classList.remove('active')}
+ if(bgMusic.paused){try{await bgMusic.play();$('voice').textContent=(translations[uiLang]||translations.uz).musicOn;$('voice').classList.add('active')}catch(e){$('voice').textContent='MUSIC.MP3 KERAK'}}else{bgMusic.pause();$('voice').textContent=(translations[uiLang]||translations.uz).music;$('voice').classList.remove('active')}
 });
 const panel=$('generatorPanel');
 $('openGenerator').addEventListener('click',()=>{panel.classList.remove('hidden');$('genName').focus()});
@@ -248,7 +308,7 @@ document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',(
 }));
 $('genFlower').addEventListener('change',e=>{flowerType=e.target.value});
 $('genColor').addEventListener('change',e=>{flowerColor=e.target.value});
-$('genLang').addEventListener('change',e=>{uiLang=e.target.value});
+$('genLang').addEventListener('change',e=>{uiLang=e.target.value;applyLanguage()});
 $('createLink').addEventListener('click',()=>{
  const n=$('genName').value.trim();if(!n){$('genName').focus();$('genName').style.borderColor='#ff6c91';return}
  const message=$('genMessage').value.trim();
@@ -257,12 +317,12 @@ $('createLink').addEventListener('click',()=>{
   url.searchParams.set('flower',$('genFlower').value);
   url.searchParams.set('color',$('genColor').value);
   url.searchParams.set('lang',$('genLang').value);
- $('generatedUrl').value=url.toString();$('generatedWrap').classList.remove('hidden');$('copyStatus').textContent='Havolani nusxalab, Telegram yoki Instagram orqali yuboring.';
+ $('generatedUrl').value=url.toString();$('generatedWrap').classList.remove('hidden');$('copyStatus').dataset.changed='';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copyHelp;
 });
 $('copyLink').addEventListener('click',async()=>{
  const field=$('generatedUrl');field.select();field.setSelectionRange(0,field.value.length);
- try{await navigator.clipboard.writeText(field.value);$('copyStatus').textContent='Havola nusxalandi! Endi yuborishingiz mumkin ✓'}
- catch(e){try{document.execCommand('copy');$('copyStatus').textContent='Havola nusxalandi! ✓'}catch(_){$('copyStatus').textContent='Havolani belgilang va Copy qiling.'}}
+ try{await navigator.clipboard.writeText(field.value);$('copyStatus').dataset.changed='1';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copied}
+ catch(e){try{document.execCommand('copy');$('copyStatus').dataset.changed='1';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copied}catch(_){$('copyStatus').dataset.changed='1';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copyFallback}}
 });
 function loadPersonalLink(){
  const p=new URLSearchParams(location.search);
@@ -274,11 +334,13 @@ function loadPersonalLink(){
   if(!flowerPalettes[flowerColor])flowerColor='pink';
   if(!['rose','tulip','sunflower','cherry','lily'].includes(flowerType))flowerType='rose';
   if(!['uz','ru','en'].includes(uiLang))uiLang='uz';
+  applyLanguage();
   $('genFlower').value=flowerType;
   $('genColor').value=flowerColor;
   $('genLang').value=uiLang;
  $('genName').value=n;
  if(m){$('genMessage').value=m;$('personalMessage').textContent=m;$('personalMessage').classList.add('show')}
+  else $('genMessage').value=(translations[uiLang]||translations.uz).defaultMessage;
  if(mde==='ascii'){mode='ascii';selectedMode='ascii';$('ascii').textContent='# % ^ 0 1';$('ascii').classList.add('active')}
  // Sahifa ochilishi bilan animatsiya avtomatik boshlanadi.
  run();

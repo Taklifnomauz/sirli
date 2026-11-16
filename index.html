@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>For You — Magic Name</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;background:#090610;color:#fff;font-family:Georgia,serif}body{overflow:hidden;background:radial-gradient(ellipse at 50% 48%,#281126 0,#130b1b 52%,#080610 100%)}
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.ui{position:relative;z-index:2;min-height:100svh;width:100%;display:flex;align-items:center;justify-content:center;padding:22px}
+.controls{position:fixed;z-index:5;top:22px;right:22px;display:flex;gap:10px}
+.pill{border:1px solid #a989a866;background:#130d1dbb;color:#eee0eb;border-radius:30px;padding:11px 19px;font:600 11px Arial;letter-spacing:3px;cursor:pointer;backdrop-filter:blur(8px)}
+.pill.active{border-color:#d9a36d;color:#ffe0b5;box-shadow:0 0 17px #ffbb7433}
+.scene{width:min(92vw,620px);height:min(82svh,780px);position:relative;display:flex;align-items:center;justify-content:center}
+#fx{position:absolute;inset:0;width:100%;height:100%}
+.envelope{position:absolute;width:min(88%,510px);aspect-ratio:1.8;opacity:0;transform:scale(.82);transition:opacity .8s,transform .8s;filter:drop-shadow(0 0 12px #ffc06b99)}
+.envelope.show{opacity:1;transform:scale(1)}
+.envbody{position:absolute;inset:0;border:3px solid #ffd18a;border-radius:5px;background:linear-gradient(140deg,#42262b,#1c1421 55%,#7c4d43);box-shadow:inset 0 0 25px #ffc47744}
+.envbody:before,.envbody:after{content:"";position:absolute;inset:0}
+.envbody:before{background:linear-gradient(35deg,transparent 49.5%,#ffdc9c 50%,transparent 50.7%),linear-gradient(-35deg,transparent 49.5%,#ffdc9c 50%,transparent 50.7%)}
+.envbody:after{background:linear-gradient(145deg,transparent 49.5%,#ffc978 50%,transparent 50.8%),linear-gradient(-145deg,transparent 49.5%,#ffc978 50%,transparent 50.8%)}
+.envflap{position:absolute;inset:0;background:linear-gradient(145deg,#ffe2a5,#b57a56);clip-path:polygon(0 0,100% 0,50% 58%);transform-origin:top;transition:transform 1s;z-index:2}
+.envheart{position:absolute;z-index:3;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(30px,6vw,54px);color:#ff5d9a;text-shadow:0 0 14px #ff418e}
+.envwords{position:absolute;z-index:3;top:58%;width:100%;text-align:center;font:bold clamp(25px,6vw,48px) Arial;color:#fff2d0;text-shadow:0 0 10px #fff1b9;letter-spacing:3px}
+.envelope.open .envflap{transform:rotateX(180deg);opacity:.4}
+.scriptname{position:absolute;z-index:2;top:48%;width:100%;text-align:center;opacity:0;transform:translateY(15px);transition:opacity 1.2s,transform 1.2s;color:#ffb5c9;font-size:clamp(44px,11vw,88px);font-style:italic;text-shadow:0 0 10px #ff6a9c,0 0 24px #f37aa5}
+.scriptname.show{opacity:1;transform:none}
+.bottomname{position:absolute;z-index:2;bottom:8%;width:100%;text-align:center;color:#ffb6ca;font-size:clamp(31px,8vw,66px);font-style:italic;text-shadow:0 0 10px #ff679b,0 0 24px #ff347d;opacity:0;transition:opacity 1s}
+.bottomname.show{opacity:1}
+.entry{position:fixed;z-index:6;left:50%;bottom:18px;transform:translateX(-50%);width:min(92vw,540px);display:flex;gap:8px;justify-content:center}
+.entry input{min-width:0;flex:1;background:#130d1dcc;border:1px solid #a989a866;border-radius:24px;padding:12px 16px;color:#fff;font-size:14px;outline:none}
+.entry button{border:1px solid #d6a06b;border-radius:24px;background:#2a1824;color:#ffd6a0;padding:0 17px;letter-spacing:2px;font:600 10px Arial;cursor:pointer}
+@media(max-height:650px){.scene{height:74svh}.controls{top:10px;right:10px}.entry{bottom:8px}}
+
+.controls{gap:7px}.controls .pill{padding:10px 13px;font-size:10px}
+.personal-message{position:absolute;z-index:3;bottom:1.5%;left:5%;right:5%;text-align:center;color:#eac9d7;font:12px Arial,sans-serif;letter-spacing:1.2px;line-height:1.5;opacity:0;transition:opacity 1s;text-shadow:0 0 9px #ff5c96}
+.personal-message.show{opacity:1}
+.generator-panel{position:fixed;inset:0;z-index:20;background:#07050ddf;backdrop-filter:blur(12px);display:grid;place-items:center;padding:18px}
+.generator-card{position:relative;width:min(100%,440px);max-height:90svh;overflow:auto;border:1px solid #a77d8c88;border-radius:22px;padding:24px 20px;background:linear-gradient(145deg,#241426,#100c18);box-shadow:0 0 45px #ff6b9d22;display:grid;gap:10px}
+.gen-title{font:600 13px Arial,sans-serif;letter-spacing:3px;color:#ffd4a0;text-align:center;margin:4px 0 10px}
+.generator-card label{font:11px Arial,sans-serif;letter-spacing:1.5px;color:#d7c4d4;margin-top:5px}
+.generator-card input,.generator-card textarea{border:1px solid #8b647b88;border-radius:12px;background:#100b18;color:#fff;padding:13px;font:14px Arial,sans-serif;width:100%;outline:none}
+.generator-card textarea{min-height:75px;resize:vertical}
+.gen-options{display:flex;gap:8px}.gen-options .pill{flex:1}
+.gen-create{border:1px solid #d6a06b;border-radius:25px;background:linear-gradient(110deg,#71374f,#44243c);color:#ffe0b5;padding:14px 17px;letter-spacing:2px;font:600 11px Arial,sans-serif;cursor:pointer;margin-top:8px}
+.gen-create.secondary{background:#201523}
+.close-gen{position:absolute;right:14px;top:10px;border:0;background:transparent;color:#f8dbe7;font-size:28px;cursor:pointer}
+.generated-wrap{display:grid;gap:8px;border-top:1px solid #8b647b66;padding-top:14px;margin-top:5px}
+.generated-caption{font:10px Arial,sans-serif;letter-spacing:1.5px;color:#c7adbf;text-align:center}
+.hidden{display:none!important}
+@media(max-width:430px){.controls .pill{padding:9px 10px;letter-spacing:1.5px}.generator-card{padding:22px 16px}}
+
+</style></head><body>
+<canvas id="stars"></canvas>
+<div class="controls"><button class="pill" id="openGenerator">LINK YARATISH</button><button class="pill active" id="ascii">ASCII</button><button class="pill active" id="voice">● OVOZ</button></div>
+<div class="ui"><div class="scene" id="scene">
+<canvas id="fx"></canvas>
+<div class="envelope" id="envelope"><div class="envbody"></div><div class="envflap"></div><div class="envheart">♥</div><div class="envwords">FOR YOU</div></div>
+<div class="scriptname" id="scriptname">Mirabbos</div><div class="bottomname" id="bottomname">Mirabbos</div><div id="personalMessage" class="personal-message"></div>
+</div></div>
+<div class="entry"><input id="person" value="Mirabbos" maxlength="24" placeholder="Ismni kiriting"><button id="replay">QAYTADAN</button></div>
+<script>
+const $=id=>document.getElementById(id), star=$('stars'),fx=$('fx'),sctx=star.getContext('2d'),ctx=fx.getContext('2d');
+let W,H,dpr,mode='dots',phase=0,start=performance.now(),audioOn=true,ac=null,osc=null,gain=null,parts=[],dust=[];
+function fit(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;[star,fx].forEach(c=>{c.width=Math.round((c===star?W:fx.clientWidth)*dpr);c.height=Math.round((c===star?H:fx.clientHeight)*dpr)});sctx.setTransform(dpr,0,0,dpr,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);makeParts()}
+function dimensions(){let r=fx.getBoundingClientRect();return {w:r.width,h:r.height,cx:r.width/2,cy:r.height*.43}}
+function makeParts(){let {w,h,cx,cy}=dimensions();parts=[];dust=[];for(let i=0;i<850;i++){let t=Math.random()*Math.PI*2;let rr=5+Math.random()*Math.min(w,h)*.29;parts.push({a:t,r:rr,sp:.15+Math.random()*.5,size:.5+Math.random()*1.7,seed:Math.random()*8})}
+for(let i=0;i<1000;i++){let t=Math.random()*Math.PI*2;let k=Math.random();let r=4+Math.random()*Math.min(w,h)*.19;let px=Math.cos(t)*r*(.8+.2*Math.sin(5*t));let py=Math.sin(t)*r*1.2;dust.push({x:cx+px,y:cy+py,tx:cx+px,ty:cy+py,size:.5+Math.random()*2.1,green:false})}
+for(let i=0;i<300;i++){let y=cy+Math.random()*h*.3;let x=cx+(Math.random()-.5)*(y-cy)*.33;dust.push({x,y,tx:x,ty:y,size:.7+Math.random()*1.7,green:true})}}
+let stars=[];for(let i=0;i<230;i++)stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:.4+Math.random()*1.5,p:Math.random()*6.28});
+function drawStars(t){sctx.clearRect(0,0,W,H);for(let p of stars){sctx.globalAlpha=.28+.5*(.5+.5*Math.sin(t*.001+p.p));sctx.fillStyle='#e8dfff';sctx.beginPath();sctx.arc(p.x,p.y,p.r,0,7);sctx.fill()}sctx.globalAlpha=1}
+function drawGalaxy(t){let {w,h,cx,cy}=dimensions();ctx.save();ctx.translate(cx,cy);let max=Math.min(w,h)*.31;
+for(let i=0;i<450;i++){let a=i*.137+t*.00035*(i%2?1:-1),r=(i/450)*max;let x=Math.cos(a)*r*1.18,y=Math.sin(a)*r*.48;let alpha=.25+.65*(.5+.5*Math.sin(i+t*.004));ctx.fillStyle=i%8===0?'#fff0d9':`rgba(255,65,133,${alpha})`;ctx.shadowBlur=mode==='dots'?9:0;ctx.shadowColor='#ff4c93';if(mode==='ascii'){ctx.font='9px monospace';ctx.fillText(['#','%','^','0','1','@'][i%6],x,y)}else{ctx.beginPath();ctx.arc(x,y,.7+(i%4)*.35,0,7);ctx.fill()}}
+ctx.restore()}
+function rosePosition(i){let {w,h,cx,cy}=dimensions();let n=1000;if(i<850){let t=(i/850)*Math.PI*2;let r=(70+30*Math.cos(5*t))*(.45+((i%13)/13)*.8);return {x:cx+Math.cos(t)*r*.78,y:cy-h*.015+Math.sin(t)*r*.9}}let j=i-850;let y=cy+12+j/300*h*.25;return {x:cx+Math.sin(j*.08)*3,y}}
+function drawRose(t){let {w,h,cx,cy}=dimensions();dust.forEach((p,i)=>{let target=rosePosition(i);let x=target.x+Math.sin(t*.002+i)*1.3,y=target.y+Math.cos(t*.002+i)*1.3;let green=i>=850;ctx.fillStyle=green?'#4cff9e':(i%9===0?'#fff0e6':'#ff4c91');ctx.shadowBlur=mode==='dots'?12:0;ctx.shadowColor=ctx.fillStyle;if(mode==='ascii'){ctx.font='9px monospace';ctx.fillText(['#','%','^','0','1','@'][i%6],x,y)}else{ctx.beginPath();ctx.arc(x,y,p.size,0,7);ctx.fill()}});ctx.shadowBlur=0}
+function animate(now){let elapsed=now-start;drawStars(now);ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);
+if(phase===1){drawGalaxy(now)}if(phase===2){drawRose(now)}
+requestAnimationFrame(animate)}
+function run(){start=performance.now();phase=0;$('envelope').classList.remove('show','open');$('scriptname').classList.remove('show');$('bottomname').classList.remove('show');let name=$('person').value.trim()||'Sen';$('scriptname').textContent=name;$('bottomname').textContent=name;
+setTimeout(()=>{$('envelope').classList.add('show')},350);
+setTimeout(()=>{$('envelope').classList.add('open')},1900);
+setTimeout(()=>{$('envelope').classList.remove('show');phase=1},3300);
+setTimeout(()=>{$('scriptname').classList.add('show')},5200);
+setTimeout(()=>{$('scriptname').classList.remove('show');phase=2;$('bottomname').classList.add('show')},8500)}
+$('replay').onclick=run;$('person').addEventListener('input',()=>{let n=$('person').value.trim()||'Sen';$('scriptname').textContent=n;$('bottomname').textContent=n});
+$('ascii').onclick=()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').classList.toggle('active',mode==='ascii');$('ascii').textContent=mode==='ascii'?'● ASCII':'ASCII'};
+$('voice').onclick=()=>{audioOn=!audioOn;$('voice').textContent=audioOn?'● OVOZ':'OVOZ OFF';$('voice').classList.toggle('active',audioOn);if(audioOn){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();osc=ac.createOscillator();gain=ac.createGain();osc.type='sine';osc.frequency.value=196;gain.gain.value=.012;osc.connect(gain);gain.connect(ac.destination);osc.start()}else ac.resume()}else if(ac)ac.suspend()};
+new ResizeObserver(()=>fit()).observe($('scene'));addEventListener('resize',()=>{stars=[];for(let i=0;i<230;i++)stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:.4+Math.random()*1.5,p:Math.random()*6.28})});fit();run();animate(0);
+
+// Link generator: each recipient gets a unique URL with their own name/message.
+let selectedGenMode = 'dots';
+const generatorPanel = $('generatorPanel');
+$('openGenerator').addEventListener('click', () => generatorPanel.classList.remove('hidden'));
+$('closeGenerator').addEventListener('click', () => generatorPanel.classList.add('hidden'));
+generatorPanel.addEventListener('click', e => { if(e.target === generatorPanel) generatorPanel.classList.add('hidden'); });
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedGenMode = btn.dataset.mode;
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+$('createLink').addEventListener('click', () => {
+  const n = $('genName').value.trim();
+  if(!n){ $('genName').focus(); return; }
+  const m = $('genMessage').value.trim();
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('name', n);
+  if(m) url.searchParams.set('message', m);
+  url.searchParams.set('mode', selectedGenMode);
+  $('generatedUrl').value = url.toString();
+  $('generatedWrap').classList.remove('hidden');
+});
+$('copyLink').addEventListener('click', async () => {
+  const value = $('generatedUrl').value;
+  try {
+    await navigator.clipboard.writeText(value);
+    $('copyLink').textContent = 'NUSXALANDI ✓';
+  } catch(e) {
+    $('generatedUrl').select();
+    document.execCommand('copy');
+    $('copyLink').textContent = 'NUSXALANDI ✓';
+  }
+});
+// If someone opens a personal link, fill their name/message and start the animation.
+(function loadPersonalLink(){
+  const params = new URLSearchParams(window.location.search);
+  const n = params.get('name');
+  const m = params.get('message');
+  const chosenMode = params.get('mode');
+  if(n){
+    $('person').value = n;
+    $('scriptname').textContent = n;
+    $('bottomname').textContent = n;
+    $('genName').value = n;
+  }
+  if(m){
+    $('genMessage').value = m;
+    $('personalMessage').textContent = m;
+    $('personalMessage').classList.add('show');
+  }
+  if(chosenMode === 'ascii'){
+    mode = 'ascii';
+    $('ascii').classList.add('active');
+    $('ascii').textContent = '● ASCII';
+    selectedGenMode = 'ascii';
+  }
+  if(n){
+    $('generatorPanel').classList.add('hidden');
+    run();
+    if(m){
+      $('personalMessage').textContent = m;
+      $('personalMessage').classList.add('show');
+    }
+  }
+})();
+
+</script></body></html>

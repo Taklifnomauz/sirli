@@ -46,110 +46,157 @@
 .hidden{display:none!important}
 @media(max-width:430px){.controls .pill{padding:9px 10px;letter-spacing:1.5px}.generator-card{padding:22px 16px}}
 
+
+.controls{left:50%;right:auto;transform:translateX(-50%);top:16px;width:max-content;max-width:96vw;gap:8px;flex-wrap:wrap;justify-content:center}
+.controls .pill{font-size:10px;padding:12px 15px;letter-spacing:1.7px}
+.entry{bottom:20px;width:min(94vw,570px)}
+.entry input{padding:15px 18px;font-size:15px}
+.entry button{padding:0 20px;font-size:11px}
+.generator-panel{position:fixed;inset:0;z-index:20;background:#07050de8;backdrop-filter:blur(13px);display:grid;place-items:center;padding:16px}
+.generator-card{position:relative;width:min(100%,500px);max-height:90svh;overflow:auto;border:1px solid #d1a47788;border-radius:25px;padding:30px 25px 24px;background:linear-gradient(145deg,#2b172b,#100b18 75%);box-shadow:0 0 55px #ff6b9d35;display:grid;gap:12px}
+.gen-title{font:600 14px Arial,sans-serif;letter-spacing:2.5px;color:#ffdfb8;text-align:center;margin:2px 0 12px}
+.generator-card label{font:12px Arial,sans-serif;letter-spacing:.7px;color:#ead4e3;margin-top:5px}
+.generator-card input,.generator-card textarea{border:1px solid #b58b9e88;border-radius:14px;background:#100b18;color:#fff;padding:15px;font:15px Arial,sans-serif;width:100%;outline:none}
+.generator-card input:focus,.generator-card textarea:focus{border-color:#ffc78b;box-shadow:0 0 15px #ffbd7133}
+.generator-card textarea{min-height:92px;resize:vertical;line-height:1.5}
+.gen-options{display:flex;gap:10px}.gen-options .pill{flex:1;padding:13px 8px}
+.gen-create{border:1px solid #e0b17a;border-radius:28px;background:linear-gradient(110deg,#8d4666,#4b2948);color:#fff0d7;padding:16px 18px;letter-spacing:1.5px;font:600 12px Arial,sans-serif;cursor:pointer;margin-top:8px;box-shadow:0 5px 22px #ff6b9d22}
+.gen-create:active{transform:scale(.98)}
+.gen-create.secondary{background:#241729}
+.close-gen{position:absolute;right:16px;top:12px;border:0;background:transparent;color:#f8dbe7;font-size:31px;cursor:pointer}
+.generated-wrap{display:grid;gap:10px;border-top:1px solid #b58b9e55;padding-top:17px;margin-top:7px}
+.generated-caption{font:11px Arial,sans-serif;letter-spacing:.7px;color:#d7bed0;text-align:center;line-height:1.5}
+#generatedUrl{font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.personal-message{font-size:clamp(12px,2.7vw,16px);bottom:1%;letter-spacing:.6px;padding:0 12px}
+@media(max-width:480px){.controls{top:9px;gap:5px}.controls .pill{padding:10px 11px;font-size:9px;letter-spacing:1px}.scene{height:78svh}.entry{bottom:12px}.generator-card{padding:28px 18px 20px}}
+
 </style></head><body>
 <canvas id="stars"></canvas>
-<div class="controls"><button class="pill" id="openGenerator">LINK YARATISH</button><button class="pill active" id="ascii">ASCII</button><button class="pill active" id="voice">● OVOZ</button></div>
+<div class="controls"><button class="pill" id="openGenerator">✦ LINK YARATISH</button><button class="pill active" id="ascii">NUQTALAR</button><button class="pill" id="voice">♫ MUSIQA</button></div>
 <div class="ui"><div class="scene" id="scene">
 <canvas id="fx"></canvas>
 <div class="envelope" id="envelope"><div class="envbody"></div><div class="envflap"></div><div class="envheart">♥</div><div class="envwords">FOR YOU</div></div>
 <div class="scriptname" id="scriptname">Mirabbos</div><div class="bottomname" id="bottomname">Mirabbos</div><div id="personalMessage" class="personal-message"></div>
 </div></div>
 <div class="entry"><input id="person" value="Mirabbos" maxlength="24" placeholder="Ismni kiriting"><button id="replay">QAYTADAN</button></div>
+
+<div id="generatorPanel" class="generator-panel hidden" role="dialog" aria-modal="true" aria-label="Shaxsiy havola yaratish">
+ <div class="generator-card">
+  <button id="closeGenerator" class="close-gen" aria-label="Yopish">×</button>
+  <div class="gen-title">✦ SHAXSIY SOVG‘A YARATISH ✦</div>
+  <label for="genName">Kimga yubormoqchisiz? Ismini yozing</label>
+  <input id="genName" maxlength="32" placeholder="Masalan: Madina">
+  <label for="genMessage">Unga atalgan xabar</label>
+  <textarea id="genMessage" maxlength="220" placeholder="Yurakdan chiqqan so‘zlaringiz...">Bu gul aynan sen uchun ❤️</textarea>
+  <label>Animatsiya ko‘rinishi</label>
+  <div class="gen-options">
+   <button type="button" class="pill active" data-mode="dots">✧ NUQTALAR</button>
+   <button type="button" class="pill" data-mode="ascii"># % ^ 0 1</button>
+  </div>
+  <button id="createLink" class="gen-create">HAVOLA YARATISH ✦</button>
+  <div id="generatedWrap" class="generated-wrap hidden">
+   <div class="generated-caption">TAYYOR SHAXSIY HAVOLA</div>
+   <input id="generatedUrl" readonly aria-label="Tayyor havola">
+   <button id="copyLink" class="gen-create secondary">HAVOLANI NUSXALASH</button>
+   <div id="copyStatus" class="generated-caption">Havolani nusxalab, Telegram yoki Instagram orqali yuboring.</div>
+  </div>
+ </div>
+</div>
+<audio id="bgMusic" loop preload="none" src="music.mp3"></audio>
+
 <script>
-const $=id=>document.getElementById(id), star=$('stars'),fx=$('fx'),sctx=star.getContext('2d'),ctx=fx.getContext('2d');
-let W,H,dpr,mode='dots',phase=0,start=performance.now(),audioOn=true,ac=null,osc=null,gain=null,parts=[],dust=[];
-function fit(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;[star,fx].forEach(c=>{c.width=Math.round((c===star?W:fx.clientWidth)*dpr);c.height=Math.round((c===star?H:fx.clientHeight)*dpr)});sctx.setTransform(dpr,0,0,dpr,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);makeParts()}
-function dimensions(){let r=fx.getBoundingClientRect();return {w:r.width,h:r.height,cx:r.width/2,cy:r.height*.43}}
-function makeParts(){let {w,h,cx,cy}=dimensions();parts=[];dust=[];for(let i=0;i<850;i++){let t=Math.random()*Math.PI*2;let rr=5+Math.random()*Math.min(w,h)*.29;parts.push({a:t,r:rr,sp:.15+Math.random()*.5,size:.5+Math.random()*1.7,seed:Math.random()*8})}
-for(let i=0;i<1000;i++){let t=Math.random()*Math.PI*2;let k=Math.random();let r=4+Math.random()*Math.min(w,h)*.19;let px=Math.cos(t)*r*(.8+.2*Math.sin(5*t));let py=Math.sin(t)*r*1.2;dust.push({x:cx+px,y:cy+py,tx:cx+px,ty:cy+py,size:.5+Math.random()*2.1,green:false})}
-for(let i=0;i<300;i++){let y=cy+Math.random()*h*.3;let x=cx+(Math.random()-.5)*(y-cy)*.33;dust.push({x,y,tx:x,ty:y,size:.7+Math.random()*1.7,green:true})}}
-let stars=[];for(let i=0;i<230;i++)stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:.4+Math.random()*1.5,p:Math.random()*6.28});
-function drawStars(t){sctx.clearRect(0,0,W,H);for(let p of stars){sctx.globalAlpha=.28+.5*(.5+.5*Math.sin(t*.001+p.p));sctx.fillStyle='#e8dfff';sctx.beginPath();sctx.arc(p.x,p.y,p.r,0,7);sctx.fill()}sctx.globalAlpha=1}
-function drawGalaxy(t){let {w,h,cx,cy}=dimensions();ctx.save();ctx.translate(cx,cy);let max=Math.min(w,h)*.31;
-for(let i=0;i<450;i++){let a=i*.137+t*.00035*(i%2?1:-1),r=(i/450)*max;let x=Math.cos(a)*r*1.18,y=Math.sin(a)*r*.48;let alpha=.25+.65*(.5+.5*Math.sin(i+t*.004));ctx.fillStyle=i%8===0?'#fff0d9':`rgba(255,65,133,${alpha})`;ctx.shadowBlur=mode==='dots'?9:0;ctx.shadowColor='#ff4c93';if(mode==='ascii'){ctx.font='9px monospace';ctx.fillText(['#','%','^','0','1','@'][i%6],x,y)}else{ctx.beginPath();ctx.arc(x,y,.7+(i%4)*.35,0,7);ctx.fill()}}
-ctx.restore()}
-function rosePosition(i){let {w,h,cx,cy}=dimensions();let n=1000;if(i<850){let t=(i/850)*Math.PI*2;let r=(70+30*Math.cos(5*t))*(.45+((i%13)/13)*.8);return {x:cx+Math.cos(t)*r*.78,y:cy-h*.015+Math.sin(t)*r*.9}}let j=i-850;let y=cy+12+j/300*h*.25;return {x:cx+Math.sin(j*.08)*3,y}}
-function drawRose(t){let {w,h,cx,cy}=dimensions();dust.forEach((p,i)=>{let target=rosePosition(i);let x=target.x+Math.sin(t*.002+i)*1.3,y=target.y+Math.cos(t*.002+i)*1.3;let green=i>=850;ctx.fillStyle=green?'#4cff9e':(i%9===0?'#fff0e6':'#ff4c91');ctx.shadowBlur=mode==='dots'?12:0;ctx.shadowColor=ctx.fillStyle;if(mode==='ascii'){ctx.font='9px monospace';ctx.fillText(['#','%','^','0','1','@'][i%6],x,y)}else{ctx.beginPath();ctx.arc(x,y,p.size,0,7);ctx.fill()}});ctx.shadowBlur=0}
-function animate(now){let elapsed=now-start;drawStars(now);ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);
-if(phase===1){drawGalaxy(now)}if(phase===2){drawRose(now)}
-requestAnimationFrame(animate)}
-function run(){start=performance.now();phase=0;$('envelope').classList.remove('show','open');$('scriptname').classList.remove('show');$('bottomname').classList.remove('show');let name=$('person').value.trim()||'Sen';$('scriptname').textContent=name;$('bottomname').textContent=name;
-setTimeout(()=>{$('envelope').classList.add('show')},350);
-setTimeout(()=>{$('envelope').classList.add('open')},1900);
-setTimeout(()=>{$('envelope').classList.remove('show');phase=1},3300);
-setTimeout(()=>{$('scriptname').classList.add('show')},5200);
-setTimeout(()=>{$('scriptname').classList.remove('show');phase=2;$('bottomname').classList.add('show')},8500)}
-$('replay').onclick=run;$('person').addEventListener('input',()=>{let n=$('person').value.trim()||'Sen';$('scriptname').textContent=n;$('bottomname').textContent=n});
-$('ascii').onclick=()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').classList.toggle('active',mode==='ascii');$('ascii').textContent=mode==='ascii'?'● ASCII':'ASCII'};
-$('voice').onclick=()=>{audioOn=!audioOn;$('voice').textContent=audioOn?'● OVOZ':'OVOZ OFF';$('voice').classList.toggle('active',audioOn);if(audioOn){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();osc=ac.createOscillator();gain=ac.createGain();osc.type='sine';osc.frequency.value=196;gain.gain.value=.012;osc.connect(gain);gain.connect(ac.destination);osc.start()}else ac.resume()}else if(ac)ac.suspend()};
-new ResizeObserver(()=>fit()).observe($('scene'));addEventListener('resize',()=>{stars=[];for(let i=0;i<230;i++)stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:.4+Math.random()*1.5,p:Math.random()*6.28})});fit();run();animate(0);
-
-// Link generator: each recipient gets a unique URL with their own name/message.
-let selectedGenMode = 'dots';
-const generatorPanel = $('generatorPanel');
-$('openGenerator').addEventListener('click', () => generatorPanel.classList.remove('hidden'));
-$('closeGenerator').addEventListener('click', () => generatorPanel.classList.add('hidden'));
-generatorPanel.addEventListener('click', e => { if(e.target === generatorPanel) generatorPanel.classList.add('hidden'); });
-document.querySelectorAll('[data-mode]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    selectedGenMode = btn.dataset.mode;
-    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b === btn));
-  });
+const $ = id => document.getElementById(id);
+const starCanvas=$('stars'), fx=$('fx'), sctx=starCanvas.getContext('2d'), ctx=fx.getContext('2d');
+let W=innerWidth,H=innerHeight,dpr=1,mode='dots',phase=0,raf=0,stageTimers=[];
+let stars=[],audioContext=null,oscillator=null,gainNode=null;
+function sizeCanvas(){
+ const rect=fx.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2); W=innerWidth;H=innerHeight;
+ starCanvas.width=Math.round(W*dpr);starCanvas.height=Math.round(H*dpr);
+ fx.width=Math.max(1,Math.round(rect.width*dpr));fx.height=Math.max(1,Math.round(rect.height*dpr));
+ sctx.setTransform(dpr,0,0,dpr,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);
+ stars=Array.from({length:260},()=>({x:Math.random()*W,y:Math.random()*H,r:.4+Math.random()*1.6,p:Math.random()*6.28}));
+}
+function dims(){let r=fx.getBoundingClientRect();return {w:r.width,h:r.height,cx:r.width/2,cy:r.height*.43}}
+function drawStars(t){sctx.clearRect(0,0,W,H);for(const p of stars){sctx.globalAlpha=.24+.62*(.5+.5*Math.sin(t*.001+p.p));sctx.fillStyle='#f0e5ff';sctx.beginPath();sctx.arc(p.x,p.y,p.r,0,Math.PI*2);sctx.fill()}sctx.globalAlpha=1}
+function drawGalaxy(t){
+ const {w,h,cx,cy}=dims(),max=Math.min(w,h)*.36;ctx.save();ctx.translate(cx,cy);
+ // Multi-arm spiral with a dense luminous core.
+ for(let i=0;i<1700;i++){
+  const arm=i%5, u=Math.random; // deterministic positions below
+  const q=i/1700, a=q*Math.PI*13+arm*Math.PI*2/5+t*.00022*(i%2?1:-1);
+  const r=5+q*max, spread=(Math.sin(i*91.7)*.5)*9;
+  const x=Math.cos(a)*(r+spread)*1.12,y=Math.sin(a)*(r+spread)*.56;
+  const alpha=.25+.65*(.5+.5*Math.sin(i+t*.003));
+  ctx.fillStyle=i%17===0?'#fff4df':(i%4===0?`rgba(255,174,209,${alpha})`:`rgba(255,62,139,${alpha})`);
+  ctx.shadowBlur=mode==='dots'?11:0;ctx.shadowColor='#ff4c93';
+  if(mode==='ascii'){ctx.font='10px monospace';ctx.fillText(['#','%','^','0','1','@'][i%6],x,y)}
+  else{ctx.beginPath();ctx.arc(x,y,.7+(i%4)*.35,0,Math.PI*2);ctx.fill()}
+ }
+ const g=ctx.createRadialGradient(0,0,1,0,0,max*.24);g.addColorStop(0,'#fff2dd');g.addColorStop(.22,'#ff9fc5aa');g.addColorStop(1,'#ff4c9300');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,max*.24,0,7);ctx.fill();
+ ctx.restore();
+}
+function rosePoint(i,cx,cy,h){
+ if(i<1150){let petal=Math.floor(i/230),u=(i%230)/230*Math.PI*2;let r=30+52*Math.pow(Math.abs(Math.sin(u*2.5)),.8);let a=u+petal*.16;return {x:cx+Math.cos(a)*r*.85,y:cy-h*.04+Math.sin(a)*r*.78}}
+ let j=i-1150,y=cy+20+j/420*h*.27;return {x:cx+Math.sin(j*.045)*Math.min(7,j*.018),y};
+}
+function drawRose(t){
+ const {w,h,cx,cy}=dims();
+ for(let i=0;i<1570;i++){
+  const p=rosePoint(i,cx,cy,h),green=i>=1150;
+  const x=p.x+Math.sin(t*.0017+i*1.7)*1.3,y=p.y+Math.cos(t*.0015+i)*1.3;
+  ctx.fillStyle=green?'#65ffad':(i%13===0?'#fff0e5':(i%5===0?'#ff9dbd':'#ff397e'));
+  ctx.shadowBlur=mode==='dots'?12:0;ctx.shadowColor=ctx.fillStyle;
+  if(mode==='ascii'){ctx.font='9px monospace';ctx.fillText(['#','%','^','0','1'][i%5],x,y)}
+  else{ctx.beginPath();ctx.arc(x,y,.7+(i%4)*.35,0,Math.PI*2);ctx.fill()}
+ }
+ ctx.shadowBlur=0;
+}
+function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2)drawRose(t);raf=requestAnimationFrame(animate)}
+function clearStages(){stageTimers.forEach(clearTimeout);stageTimers=[]}
+function run(){
+ clearStages();phase=0;
+ $('envelope').classList.remove('show','open');$('scriptname').classList.remove('show');$('bottomname').classList.remove('show');
+ const n=$('person').value.trim()||'Sen';$('scriptname').textContent=n;$('bottomname').textContent=n;
+ stageTimers.push(setTimeout(()=>$('envelope').classList.add('show'),250));
+ stageTimers.push(setTimeout(()=>$('envelope').classList.add('open'),1550));
+ stageTimers.push(setTimeout(()=>{$('envelope').classList.remove('show');phase=1},2900));
+ stageTimers.push(setTimeout(()=>$('scriptname').classList.add('show'),4700));
+ stageTimers.push(setTimeout(()=>{$('scriptname').classList.remove('show');phase=2;$('bottomname').classList.add('show')},7900));
+}
+$('replay').addEventListener('click',run);
+$('person').addEventListener('input',()=>{const n=$('person').value.trim()||'Sen';$('scriptname').textContent=n;$('bottomname').textContent=n});
+$('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii')});
+const bgMusic=$('bgMusic');
+$('voice').addEventListener('click',async()=>{
+ if(bgMusic.paused){try{await bgMusic.play();$('voice').textContent='♫ MUSIQA ON';$('voice').classList.add('active')}catch(e){$('voice').textContent='MUSIC.MP3 KERAK'}}else{bgMusic.pause();$('voice').textContent='♫ MUSIQA';$('voice').classList.remove('active')}
 });
-$('createLink').addEventListener('click', () => {
-  const n = $('genName').value.trim();
-  if(!n){ $('genName').focus(); return; }
-  const m = $('genMessage').value.trim();
-  const url = new URL(window.location.href);
-  url.search = '';
-  url.searchParams.set('name', n);
-  if(m) url.searchParams.set('message', m);
-  url.searchParams.set('mode', selectedGenMode);
-  $('generatedUrl').value = url.toString();
-  $('generatedWrap').classList.remove('hidden');
+const panel=$('generatorPanel');
+$('openGenerator').addEventListener('click',()=>{panel.classList.remove('hidden');$('genName').focus()});
+$('closeGenerator').addEventListener('click',()=>panel.classList.add('hidden'));
+panel.addEventListener('click',e=>{if(e.target===panel)panel.classList.add('hidden')});
+let selectedMode='dots';
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+ selectedMode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));
+}));
+$('createLink').addEventListener('click',()=>{
+ const n=$('genName').value.trim();if(!n){$('genName').focus();$('genName').style.borderColor='#ff6c91';return}
+ const message=$('genMessage').value.trim();
+ const url=new URL(window.location.href);url.search='';url.hash='';
+ url.searchParams.set('name',n);if(message)url.searchParams.set('message',message);url.searchParams.set('mode',selectedMode);
+ $('generatedUrl').value=url.toString();$('generatedWrap').classList.remove('hidden');$('copyStatus').textContent='Havolani nusxalab, Telegram yoki Instagram orqali yuboring.';
 });
-$('copyLink').addEventListener('click', async () => {
-  const value = $('generatedUrl').value;
-  try {
-    await navigator.clipboard.writeText(value);
-    $('copyLink').textContent = 'NUSXALANDI ✓';
-  } catch(e) {
-    $('generatedUrl').select();
-    document.execCommand('copy');
-    $('copyLink').textContent = 'NUSXALANDI ✓';
-  }
+$('copyLink').addEventListener('click',async()=>{
+ const field=$('generatedUrl');field.select();field.setSelectionRange(0,field.value.length);
+ try{await navigator.clipboard.writeText(field.value);$('copyStatus').textContent='Havola nusxalandi! Endi yuborishingiz mumkin ✓'}
+ catch(e){try{document.execCommand('copy');$('copyStatus').textContent='Havola nusxalandi! ✓'}catch(_){$('copyStatus').textContent='Havolani belgilang va Copy qiling.'}}
 });
-// If someone opens a personal link, fill their name/message and start the animation.
-(function loadPersonalLink(){
-  const params = new URLSearchParams(window.location.search);
-  const n = params.get('name');
-  const m = params.get('message');
-  const chosenMode = params.get('mode');
-  if(n){
-    $('person').value = n;
-    $('scriptname').textContent = n;
-    $('bottomname').textContent = n;
-    $('genName').value = n;
-  }
-  if(m){
-    $('genMessage').value = m;
-    $('personalMessage').textContent = m;
-    $('personalMessage').classList.add('show');
-  }
-  if(chosenMode === 'ascii'){
-    mode = 'ascii';
-    $('ascii').classList.add('active');
-    $('ascii').textContent = '● ASCII';
-    selectedGenMode = 'ascii';
-  }
-  if(n){
-    $('generatorPanel').classList.add('hidden');
-    run();
-    if(m){
-      $('personalMessage').textContent = m;
-      $('personalMessage').classList.add('show');
-    }
-  }
-})();
-
+function loadPersonalLink(){
+ const p=new URLSearchParams(location.search),n=p.get('name'),m=p.get('message'),mde=p.get('mode');
+ if(n){$('person').value=n;$('genName').value=n}
+ if(m){$('genMessage').value=m;$('personalMessage').textContent=m;$('personalMessage').classList.add('show')}
+ if(mde==='ascii'){mode='ascii';selectedMode='ascii';$('ascii').textContent='# % ^ 0 1';$('ascii').classList.add('active')}
+ if(n)run();
+}
+new ResizeObserver(sizeCanvas).observe($('scene'));window.addEventListener('resize',sizeCanvas);
+sizeCanvas();loadPersonalLink();animate(0);
 </script></body></html>

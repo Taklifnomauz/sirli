@@ -244,11 +244,14 @@ $('copyLink').addEventListener('click',async()=>{
  catch(e){try{document.execCommand('copy');$('copyStatus').textContent='Havola nusxalandi! ✓'}catch(_){$('copyStatus').textContent='Havolani belgilang va Copy qiling.'}}
 });
 function loadPersonalLink(){
- const p=new URLSearchParams(location.search),n=p.get('name'),m=p.get('message'),mde=p.get('mode');
- if(n){$('genName').value=n}
+ const p=new URLSearchParams(location.search);
+ const n=(p.get('name')||'Mirabbos').trim()||'Mirabbos';
+ const m=p.get('message'),mde=p.get('mode');
+ $('genName').value=n;
  if(m){$('genMessage').value=m;$('personalMessage').textContent=m;$('personalMessage').classList.add('show')}
  if(mde==='ascii'){mode='ascii';selectedMode='ascii';$('ascii').textContent='# % ^ 0 1';$('ascii').classList.add('active')}
- if(n)run();
+ // Sahifa ochilishi bilan animatsiya avtomatik boshlanadi.
+ run();
 }
 new ResizeObserver(sizeCanvas).observe($('scene'));window.addEventListener('resize',sizeCanvas);
 sizeCanvas();loadPersonalLink();animate(0);

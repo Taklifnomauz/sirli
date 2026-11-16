@@ -81,7 +81,7 @@
 <div class="ui"><div class="scene" id="scene">
 <canvas id="fx"></canvas>
 <div class="envelope" id="envelope"><div class="envbody"></div><div class="envflap"></div><div class="envheart">♥</div><div class="envwords">FOR YOU</div></div>
-<div class="scriptname" id="scriptname">Mirabbos</div><div class="bottomname" id="bottomname">Mirabbos</div><div class="brand-mark" id="brandMark">AL-QAMIR</div><div id="personalMessage" class="personal-message"></div>
+<div class="scriptname" id="scriptname">Madina</div><div class="bottomname" id="bottomname">Madina</div><div class="brand-mark" id="brandMark">AL-QAMIR</div><div id="personalMessage" class="personal-message"></div>
 </div></div>
 <div class="entry"><button id="replay">QAYTADAN</button></div>
 
@@ -136,6 +136,16 @@ const $ = id => document.getElementById(id);
 const starCanvas=$('stars'), fx=$('fx'), sctx=starCanvas.getContext('2d'), ctx=fx.getContext('2d');
 let W=innerWidth,H=innerHeight,dpr=1,mode='dots',phase=0,raf=0,stageTimers=[];
 let stars=[],audioContext=null,oscillator=null,gainNode=null;
+let flowerType='rose',flowerColor='pink',uiLang='uz';
+const flowerPalettes={
+ pink:['#ffe1ec','#ff8eb7','#ffd1e2','#b92768'],
+ red:['#ffd0d0','#f04462','#ff9aab','#8f1738'],
+ white:['#ffffff','#f4dce9','#fff7fb','#b9a7b5'],
+ purple:['#f0d7ff','#b77be8','#dfb6ff','#63358e'],
+ blue:['#d8f4ff','#75c9f2','#b4e8ff','#286d9c'],
+ yellow:['#fff3b0','#ffc83d','#ffe78a','#b87916'],
+ orange:['#ffe0c2','#ff9a62','#ffc49b','#a94b2b']
+};
 function sizeCanvas(){
  const rect=fx.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2); W=innerWidth;H=innerHeight;
  starCanvas.width=Math.round(W*dpr);starCanvas.height=Math.round(H*dpr);
@@ -201,14 +211,26 @@ function drawRose(t){
 function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2)drawRose(t);raf=requestAnimationFrame(animate)}
 function clearStages(){stageTimers.forEach(clearTimeout);stageTimers=[]}
 function run(){
- clearStages();phase=0;
- $('envelope').classList.remove('show','open');$('scriptname').classList.remove('show');$('bottomname').classList.remove('show');
- const n=$('person').value.trim()||'Sen';$('scriptname').textContent=n;$('bottomname').textContent=n;
- stageTimers.push(setTimeout(()=>$('envelope').classList.add('show'),250));
- stageTimers.push(setTimeout(()=>$('envelope').classList.add('open'),1550));
+ clearStages();
+ phase=0;
+ $('envelope').classList.remove('show','open');
+ $('scriptname').classList.remove('show');
+ $('bottomname').classList.remove('show');
+ $('brandMark').classList.remove('show');
+ const params=new URLSearchParams(location.search);
+ const n=(params.get('name')||'Sen').trim()||'Sen';
+ $('scriptname').textContent=n;
+ $('bottomname').textContent=n;
+ stageTimers.push(setTimeout(()=>$('envelope').classList.add('show'),300));
+ stageTimers.push(setTimeout(()=>$('envelope').classList.add('open'),2300));
  stageTimers.push(setTimeout(()=>{$('envelope').classList.remove('show');phase=1},4200));
- stageTimers.push(setTimeout(()=>$('scriptname').classList.add('show'),4700));
- stageTimers.push(setTimeout(()=>{$('scriptname').classList.remove('show');phase=2;$('bottomname').classList.add('show');$('brandMark').classList.add('show')},10800));
+ stageTimers.push(setTimeout(()=>$('scriptname').classList.add('show'),5200));
+ stageTimers.push(setTimeout(()=>{
+  $('scriptname').classList.remove('show');
+  phase=2;
+  $('bottomname').classList.add('show');
+  $('brandMark').classList.add('show');
+ },10800));
 }
 $('replay').addEventListener('click',run);
 $('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii')});
@@ -224,11 +246,17 @@ let selectedMode='dots';
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
  selectedMode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));
 }));
+$('genFlower').addEventListener('change',e=>{flowerType=e.target.value});
+$('genColor').addEventListener('change',e=>{flowerColor=e.target.value});
+$('genLang').addEventListener('change',e=>{uiLang=e.target.value});
 $('createLink').addEventListener('click',()=>{
  const n=$('genName').value.trim();if(!n){$('genName').focus();$('genName').style.borderColor='#ff6c91';return}
  const message=$('genMessage').value.trim();
  const url=new URL(window.location.href);url.search='';url.hash='';
  url.searchParams.set('name',n);if(message)url.searchParams.set('message',message);url.searchParams.set('mode',selectedMode);
+  url.searchParams.set('flower',$('genFlower').value);
+  url.searchParams.set('color',$('genColor').value);
+  url.searchParams.set('lang',$('genLang').value);
  $('generatedUrl').value=url.toString();$('generatedWrap').classList.remove('hidden');$('copyStatus').textContent='Havolani nusxalab, Telegram yoki Instagram orqali yuboring.';
 });
 $('copyLink').addEventListener('click',async()=>{
@@ -238,8 +266,17 @@ $('copyLink').addEventListener('click',async()=>{
 });
 function loadPersonalLink(){
  const p=new URLSearchParams(location.search);
- const n=(p.get('name')||'Mirabbos').trim()||'Mirabbos';
+ const n=(p.get('name')||'Madina').trim()||'Madina';
  const m=p.get('message'),mde=p.get('mode');
+  flowerType=p.get('flower')||'rose';
+  flowerColor=p.get('color')||'pink';
+  uiLang=p.get('lang')||'uz';
+  if(!flowerPalettes[flowerColor])flowerColor='pink';
+  if(!['rose','tulip','sunflower','cherry','lily'].includes(flowerType))flowerType='rose';
+  if(!['uz','ru','en'].includes(uiLang))uiLang='uz';
+  $('genFlower').value=flowerType;
+  $('genColor').value=flowerColor;
+  $('genLang').value=uiLang;
  $('genName').value=n;
  if(m){$('genMessage').value=m;$('personalMessage').textContent=m;$('personalMessage').classList.add('show')}
  if(mde==='ascii'){mode='ascii';selectedMode='ascii';$('ascii').textContent='# % ^ 0 1';$('ascii').classList.add('active')}

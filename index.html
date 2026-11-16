@@ -78,7 +78,7 @@
 <div class="ui"><div class="scene" id="scene">
 <canvas id="fx"></canvas>
 <div class="envelope" id="envelope"><div class="envbody"></div><div class="envflap"></div><div class="envheart">♥</div><div class="envwords">FOR YOU</div></div>
-<div class="scriptname" id="scriptname">Mirabbos</div><div class="bottomname" id="bottomname">Mirabbos</div><div class="brand-mark" id="brandMark">AL-QAMIR</div><div id="personalMessage" class="personal-message"></div>
+<div class="scriptname" id="scriptname">Madina</div><div class="bottomname" id="bottomname">Madina</div><div class="brand-mark" id="brandMark">AL-QAMIR</div><div id="personalMessage" class="personal-message"></div>
 </div></div>
 <div class="entry"><button id="replay">QAYTADAN</button></div>
 
@@ -110,7 +110,7 @@
 const $ = id => document.getElementById(id);
 const starCanvas=$('stars'), fx=$('fx'), sctx=starCanvas.getContext('2d'), ctx=fx.getContext('2d');
 let W=innerWidth,H=innerHeight,dpr=1,mode='dots',phase=0,raf=0,stageTimers=[];
-let stars=[],audioContext=null,oscillator=null,gainNode=null;
+let stars=[];
 function sizeCanvas(){
  const rect=fx.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2); W=innerWidth;H=innerHeight;
  starCanvas.width=Math.round(W*dpr);starCanvas.height=Math.round(H*dpr);
@@ -208,14 +208,29 @@ function drawRose(t){
 function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2)drawRose(t);raf=requestAnimationFrame(animate)}
 function clearStages(){stageTimers.forEach(clearTimeout);stageTimers=[]}
 function run(){
- clearStages();phase=0;
- $('envelope').classList.remove('show','open');$('scriptname').classList.remove('show');$('bottomname').classList.remove('show');
- const n=$('person').value.trim()||'Sen';$('scriptname').textContent=n;$('bottomname').textContent=n;
+ clearStages();
+ phase=0;
+ $('envelope').classList.remove('show','open');
+ $('scriptname').classList.remove('show');
+ $('bottomname').classList.remove('show');
+ $('brandMark').classList.remove('show');
+
+ // The old visible name input was removed, so read the recipient from the URL.
+ const params=new URLSearchParams(window.location.search);
+ const recipient=(params.get('name') || 'Mirabbos').trim() || 'Mirabbos';
+ $('scriptname').textContent=recipient;
+ $('bottomname').textContent=recipient;
+
  stageTimers.push(setTimeout(()=>$('envelope').classList.add('show'),250));
  stageTimers.push(setTimeout(()=>$('envelope').classList.add('open'),1550));
  stageTimers.push(setTimeout(()=>{$('envelope').classList.remove('show');phase=1},2900));
  stageTimers.push(setTimeout(()=>$('scriptname').classList.add('show'),4700));
- stageTimers.push(setTimeout(()=>{$('scriptname').classList.remove('show');phase=2;$('bottomname').classList.add('show');$('brandMark').classList.add('show')},7900));
+ stageTimers.push(setTimeout(()=>{
+   $('scriptname').classList.remove('show');
+   phase=2;
+   $('bottomname').classList.add('show');
+   $('brandMark').classList.add('show');
+ },7900));
 }
 $('replay').addEventListener('click',run);
 $('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii')});
@@ -253,6 +268,9 @@ function loadPersonalLink(){
  // Sahifa ochilishi bilan animatsiya avtomatik boshlanadi.
  run();
 }
-new ResizeObserver(sizeCanvas).observe($('scene'));window.addEventListener('resize',sizeCanvas);
-sizeCanvas();loadPersonalLink();animate(0);
+if('ResizeObserver' in window){new ResizeObserver(sizeCanvas).observe($('scene'));}
+window.addEventListener('resize',sizeCanvas);
+sizeCanvas();
+loadPersonalLink();
+animate(0);
 </script></body></html>

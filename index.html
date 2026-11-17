@@ -39,9 +39,6 @@
 .generator-card label{font:11px Arial,sans-serif;letter-spacing:1.5px;color:#d7c4d4;margin-top:5px}
 .generator-card input,.generator-card textarea{border:1px solid #8b647b88;border-radius:12px;background:#100b18;color:#fff;padding:13px;font:14px Arial,sans-serif;width:100%;outline:none}
 .generator-card textarea{min-height:75px;resize:vertical}
-.gen-select{width:100%;border:1px solid #b58b9e88;border-radius:14px;background:#100b18;color:#fff;padding:13px;font:14px Arial,sans-serif;outline:none}
-.envelope{transition:opacity 1.5s,transform 1.5s}.envflap{transition:transform 1.8s,opacity 1.8s}
-.scriptname{transition:opacity 2s,transform 2s}.bottomname{transition:opacity 2s}.brand-mark{transition:opacity 2s}
 .gen-options{display:flex;gap:8px}.gen-options .pill{flex:1}
 .gen-create{border:1px solid #d6a06b;border-radius:25px;background:linear-gradient(110deg,#71374f,#44243c);color:#ffe0b5;padding:14px 17px;letter-spacing:2px;font:600 11px Arial,sans-serif;cursor:pointer;margin-top:8px}
 .gen-create.secondary{background:#201523}
@@ -75,13 +72,20 @@
 .brand-mark{top:79%;font-size:11px;letter-spacing:4px}
 @media(max-width:480px){.controls{top:9px;gap:5px}.controls .pill{padding:10px 11px;font-size:9px;letter-spacing:1px}.scene{height:78svh}.entry{bottom:12px}.generator-card{padding:28px 18px 20px}}
 
-</style></head><body>
+
+#flower3d{opacity:0;transition:opacity .8s;position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:auto;touch-action:none}
+#flower3d canvas{display:block;width:100%;height:100%}
+#fx{z-index:2;pointer-events:none}
+.envelope,.scriptname,.bottomname,.brand-mark,.personal-message{z-index:3}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+</head><body>
 <canvas id="stars"></canvas>
 <div class="controls"><button class="pill" id="openGenerator">✦ LINK YARATISH</button><button class="pill active" id="ascii">NUQTALAR</button><button class="pill" id="voice">♫ MUSIQA</button></div>
 <div class="ui"><div class="scene" id="scene">
-<canvas id="fx"></canvas>
+<div id="flower3d" aria-label="Nuqtalardan yasalgan 3D atirgul"></div><canvas id="fx"></canvas>
 <div class="envelope" id="envelope"><div class="envbody"></div><div class="envflap"></div><div class="envheart">♥</div><div class="envwords">FOR YOU</div></div>
-<div class="scriptname" id="scriptname">Madina</div><div class="bottomname" id="bottomname">Madina</div><div class="brand-mark" id="brandMark">AL-QAMIR</div><div id="personalMessage" class="personal-message"></div>
+<div class="scriptname" id="scriptname">Mirabbos</div><div class="bottomname" id="bottomname">Mirabbos</div><div class="brand-mark" id="brandMark">AL-QAMIR</div><div id="personalMessage" class="personal-message"></div>
 </div></div>
 <div class="entry"><button id="replay">QAYTADAN</button></div>
 
@@ -93,33 +97,15 @@
   <input id="genName" maxlength="32" placeholder="Masalan: Madina">
   <label for="genMessage">Unga atalgan xabar</label>
   <textarea id="genMessage" maxlength="220" placeholder="Yurakdan chiqqan so‘zlaringiz...">Bu gul aynan sen uchun ❤️</textarea>
+  <label>Atirgul rangi</label>
+  <select id="genColor" style="border:1px solid #b58b9e88;border-radius:14px;background:#100b18;color:#fff;padding:14px;font:15px Arial,sans-serif;width:100%">
+   <option value="pink">Pushti</option><option value="red">Qizil</option><option value="white">Oq</option><option value="purple">Binafsha</option><option value="blue">Moviy</option>
+  </select>
   <label>Animatsiya ko‘rinishi</label>
   <div class="gen-options">
    <button type="button" class="pill active" data-mode="dots">✧ NUQTALAR</button>
    <button type="button" class="pill" data-mode="ascii"># % ^ 0 1</button>
   </div>
-  <label for="genFlower">Gul turini tanlang / Цветок / Flower</label>
-  <select id="genFlower" class="gen-select">
-   <option value="rose">🌹 Atirgul / Роза / Rose</option>
-   <option value="tulip">🌷 Lola / Тюльпан / Tulip</option>
-   <option value="sunflower">🌻 Kungaboqar / Подсолнух / Sunflower</option>
-   <option value="cherry">🌸 Sakura / Сакура / Cherry blossom</option>
-   <option value="lily">🪷 Nilufar / Лилия / Lily</option>
-  </select>
-  <label for="genColor">Gul rangi / Цвет / Color</label>
-  <select id="genColor" class="gen-select">
-   <option value="pink">Romantik pushti / Розовый / Pink</option>
-   <option value="red">Qizil / Красный / Red</option>
-   <option value="white">Oq / Белый / White</option>
-   <option value="purple">Binafsha / Фиолетовый / Purple</option>
-   <option value="blue">Moviy / Голубой / Blue</option>
-   <option value="yellow">Sariq / Жёлтый / Yellow</option>
-   <option value="orange">Shaftoli / Персиковый / Peach</option>
-  </select>
-  <label for="genLang">Til / Язык / Language</label>
-  <select id="genLang" class="gen-select">
-   <option value="uz">O‘zbekcha</option><option value="ru">Русский</option><option value="en">English</option>
-  </select>
   <button id="createLink" class="gen-create">HAVOLA YARATISH ✦</button>
   <div id="generatedWrap" class="generated-wrap hidden">
    <div class="generated-caption">TAYYOR SHAXSIY HAVOLA</div>
@@ -135,17 +121,9 @@
 const $ = id => document.getElementById(id);
 const starCanvas=$('stars'), fx=$('fx'), sctx=starCanvas.getContext('2d'), ctx=fx.getContext('2d');
 let W=innerWidth,H=innerHeight,dpr=1,mode='dots',phase=0,raf=0,stageTimers=[];
+let flowerColor='pink', flowerScene=null, flowerCamera=null, flowerRenderer=null, flowerPoints=null;
+let flowerTarget={x:-.10,y:0}, flowerCurrent={x:-.10,y:0}, flowerDragging=false, flowerLast={x:0,y:0};
 let stars=[],audioContext=null,oscillator=null,gainNode=null;
-let flowerType='rose',flowerColor='pink',uiLang='uz';
-const flowerPalettes={
- pink:['#ffe1ec','#ff8eb7','#ffd1e2','#b92768'],
- red:['#ffd0d0','#f04462','#ff9aab','#8f1738'],
- white:['#ffffff','#f4dce9','#fff7fb','#b9a7b5'],
- purple:['#f0d7ff','#b77be8','#dfb6ff','#63358e'],
- blue:['#d8f4ff','#75c9f2','#b4e8ff','#286d9c'],
- yellow:['#fff3b0','#ffc83d','#ffe78a','#b87916'],
- orange:['#ffe0c2','#ff9a62','#ffc49b','#a94b2b']
-};
 function sizeCanvas(){
  const rect=fx.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2); W=innerWidth;H=innerHeight;
  starCanvas.width=Math.round(W*dpr);starCanvas.height=Math.round(H*dpr);
@@ -173,130 +151,223 @@ function drawGalaxy(t){
  ctx.restore();
 }
 function drawRose(t){
- const {w,h,cx,cy}=dims(), sway=Math.sin(t*.00055)*2;
- const stemTop=cy+38,stemBottom=Math.min(h*.83,cy+h*.48);
+ const {w,h,cx,cy}=dims();
+ const sway=Math.sin(t*.0012)*2.2;
+ const stemTop=cy+42, stemBottom=Math.min(h*.83,cy+h*.48);
+ // Curved green stem made from many luminous particles.
  for(let i=0;i<520;i++){
-  const u=i/519,y=stemTop+u*(stemBottom-stemTop),x=cx+sway+Math.sin(u*9.5)*5;
-  const px=x+Math.sin(i*1.7+t*.0007)*1.2,py=y+Math.cos(i*1.3+t*.0007)*1.1;
+  const u=i/519, y=stemTop+u*(stemBottom-stemTop);
+  const x=cx+sway+Math.sin(u*9.5)*5;
+  const px=x+Math.sin(i*1.7+t*.0015)*1.2;
+  const py=y+Math.cos(i*1.3+t*.0014)*1.1;
   ctx.fillStyle=i%9===0?'#c5ffd9':(i%3===0?'#a0ffbd':'#45e991');
+  ctx.shadowBlur=mode==='dots'?10:0;ctx.shadowColor='#52ffad';
   if(mode==='ascii'){ctx.font='9px monospace';ctx.fillText(['%','^','0','1'][i%4],px,py)}
   else{ctx.beginPath();ctx.arc(px,py,.8+(i%3)*.28,0,Math.PI*2);ctx.fill()}
  }
- function leaf(side,y,ang){ctx.save();ctx.translate(cx+sway+Math.sin(y*.02)*5,y);ctx.rotate(ang*side);ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(26,-23,48,-3);ctx.quadraticCurveTo(27,17,0,0);ctx.closePath();ctx.fillStyle='#239e65';ctx.shadowColor='#4dffad';ctx.shadowBlur=13;ctx.fill();ctx.strokeStyle='#baffd5';ctx.stroke();ctx.restore()}
+ // Two delicate leaves.
+ function leaf(side, yAt, angle){
+  ctx.save();ctx.translate(cx+sway+Math.sin(yAt*.02)*5,yAt);ctx.rotate(angle*side);
+  ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(26, -23, 48, -3);
+  ctx.quadraticCurveTo(27, 17, 0, 0);ctx.closePath();
+  ctx.fillStyle='#239e65';ctx.shadowColor='#4dffad';ctx.shadowBlur=13;ctx.fill();
+  ctx.strokeStyle='#a5ffd0';ctx.lineWidth=1.2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(23,-3,44,-3);
+  ctx.strokeStyle='#baffd5';ctx.lineWidth=.8;ctx.stroke();ctx.restore();
+ }
  leaf(-1,stemTop+100,-.35);leaf(1,stemTop+190,.32);
- const R=Math.min(w,h)*.205,p=flowerPalettes[flowerColor]||flowerPalettes.pink;
+
+ // Rose head: concentric curled petals, shaped as a full layered bloom.
+ const R=Math.min(w,h)*.205;
  ctx.save();ctx.translate(cx,cy);
- const petals=flowerType==='sunflower'?18:(flowerType==='cherry'?5:(flowerType==='tulip'?7:12));
- const layers=flowerType==='cherry'?2:4;
- for(let layer=layers-1;layer>=0;layer--){
-  for(let i=0;i<petals;i++){
-   const a=i/petals*Math.PI*2+layer*.24+t*.000025;
-   const radius=R*(.12+layer*.19),px=Math.cos(a)*radius,py=Math.sin(a)*radius*.82;
-   const pw=R*(flowerType==='sunflower'?.16:(flowerType==='tulip'?.25:.22)),ph=R*(flowerType==='sunflower'?.28:.22);
+ for(let layer=5;layer>=0;layer--){
+  const count=layer===0?90:150;
+  for(let i=0;i<count;i++){
+   const a=i/count*Math.PI*2+layer*.31;
+   const f=i/count;
+   const radius=R*(.18+layer*.145)+Math.sin(a*5+layer)*R*.025;
+   const px=Math.cos(a)*radius;
+   const py=Math.sin(a)*radius*.83;
+   const petalW=R*(.20-layer*.018), petalH=R*(.13-layer*.008);
    ctx.save();ctx.translate(px,py);ctx.rotate(a+Math.PI/2);
-   const g=ctx.createLinearGradient(0,-ph,0,ph);g.addColorStop(0,p[0]);g.addColorStop(.55,p[1]);g.addColorStop(1,p[3]);
-   ctx.fillStyle=g;ctx.shadowColor=p[1];ctx.shadowBlur=mode==='dots'?13:2;
-   ctx.beginPath();ctx.moveTo(0,ph*.7);
-   if(flowerType==='tulip'){ctx.bezierCurveTo(-pw,-ph*.2,-pw*.7,-ph*1.4,0,-ph);ctx.bezierCurveTo(pw*.7,-ph*1.4,pw,-ph*.2,0,ph*.7)}
-   else if(flowerType==='cherry'){ctx.bezierCurveTo(-pw*1.2,-ph*.1,-pw,-ph,0,-ph*.8);ctx.bezierCurveTo(pw,-ph,pw*1.2,-ph*.1,0,ph*.7)}
-   else{ctx.bezierCurveTo(-pw,-ph*.1,-pw*.85,-ph*1.2,0,-ph);ctx.bezierCurveTo(pw*.85,-ph*1.2,pw,-ph*.1,0,ph*.7)}
+   const grad=ctx.createRadialGradient(0,-petalH*.25,1,0,0,petalW);
+   const shades=['#ffb0ce','#ff6fa5','#f83b82','#d91f68'];
+   grad.addColorStop(0,layer<2?'#ffd0df':shades[(i+layer)%shades.length]);
+   grad.addColorStop(1,layer<2?'#e92e73':'#a91552');
+   ctx.fillStyle=grad;ctx.shadowColor='#ff4c93';ctx.shadowBlur=mode==='dots'?10:2;
+   ctx.beginPath();ctx.moveTo(0,petalH*.65);
+   ctx.bezierCurveTo(-petalW*.95,-petalH*.05,-petalW*.7,-petalH*1.15,0,-petalH);
+   ctx.bezierCurveTo(petalW*.7,-petalH*1.15,petalW*.95,-petalH*.05,0,petalH*.65);
    ctx.fill();ctx.restore();
   }
  }
- if(flowerType==='sunflower'){ctx.beginPath();ctx.arc(0,0,R*.23,0,Math.PI*2);ctx.fillStyle='#70421d';ctx.shadowColor='#ffcf55';ctx.shadowBlur=12;ctx.fill()}
- else{for(let i=0;i<80;i++){const a=i*2.4,r=Math.sqrt(i)*R*.018;ctx.fillStyle=i%2?'#fff3d7':p[2];ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r,1.2,0,Math.PI*2);ctx.fill()}}
- ctx.restore();
- ctx.save();ctx.textAlign='left';ctx.font='600 11px Arial';ctx.fillStyle='#f7d4e4';ctx.shadowColor=p[1];ctx.shadowBlur=13;ctx.fillText('AL-QAMIR',cx+R*.78,cy+R*.18);ctx.restore();ctx.shadowBlur=0;
-}
-function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2)drawRose(t);raf=requestAnimationFrame(animate)}
-function clearStages(){stageTimers.forEach(clearTimeout);stageTimers=[]}
-
-const translations={
- uz:{
-  link:'✦ LINK YARATISH',dots:'NUQTALAR',music:'♫ MUSIQA',musicOn:'♫ MUSIQA YOQILDI',
-  replay:'QAYTADAN',genTitle:'✦ SHAXSIY SOVG‘A YARATISH ✦',
-  nameLabel:'Kimga yubormoqchisiz? Ismini yozing',namePlaceholder:'Masalan: Madina',
-  messageLabel:'Unga atalgan xabar',messagePlaceholder:'Yurakdan chiqqan so‘zlaringiz...',
-  modeLabel:'Animatsiya ko‘rinishi',flowerLabel:'Gul turini tanlang',
-  colorLabel:'Gul rangini tanlang',langLabel:'Tilni tanlang',
-  create:'HAVOLA YARATISH ✦',ready:'TAYYOR SHAXSIY HAVOLA',
-  copy:'HAVOLANI NUSXALASH',copyHelp:'Havolani nusxalab, Telegram yoki Instagram orqali yuboring.',
-  copied:'Havola nusxalandi! Endi yuborishingiz mumkin ✓',copyFallback:'Havolani belgilang va Copy qiling.',
-  defaultMessage:'Bu gul aynan sen uchun ❤️'
- },
- ru:{
-  link:'✦ СОЗДАТЬ ССЫЛКУ',dots:'ТОЧКИ',music:'♫ МУЗЫКА',musicOn:'♫ МУЗЫКА ВКЛЮЧЕНА',
-  replay:'ПОВТОРИТЬ',genTitle:'✦ СОЗДАТЬ ЛИЧНЫЙ ПОДАРОК ✦',
-  nameLabel:'Кому хотите отправить? Введите имя',namePlaceholder:'Например: Мадина',
-  messageLabel:'Ваше послание для неё',messagePlaceholder:'Слова от всего сердца...',
-  modeLabel:'Стиль анимации',flowerLabel:'Выберите цветок',
-  colorLabel:'Выберите цвет цветка',langLabel:'Выберите язык',
-  create:'СОЗДАТЬ ССЫЛКУ ✦',ready:'ВАША ЛИЧНАЯ ССЫЛКА',
-  copy:'СКОПИРОВАТЬ ССЫЛКУ',copyHelp:'Скопируйте ссылку и отправьте через Telegram или Instagram.',
-  copied:'Ссылка скопирована! Теперь можно отправить ✓',copyFallback:'Выделите ссылку и нажмите Copy.',
-  defaultMessage:'Этот цветок именно для тебя ❤️'
- },
- en:{
-  link:'✦ CREATE LINK',dots:'PARTICLES',music:'♫ MUSIC',musicOn:'♫ MUSIC ON',
-  replay:'REPLAY',genTitle:'✦ CREATE A PERSONAL GIFT ✦',
-  nameLabel:'Who is it for? Enter a name',namePlaceholder:'For example: Madina',
-  messageLabel:'Your personal message',messagePlaceholder:'Write something from the heart...',
-  modeLabel:'Animation style',flowerLabel:'Choose a flower',
-  colorLabel:'Choose flower color',langLabel:'Choose language',
-  create:'CREATE LINK ✦',ready:'YOUR PERSONAL LINK',
-  copy:'COPY LINK',copyHelp:'Copy the link and send it via Telegram or Instagram.',
-  copied:'Link copied! You can send it now ✓',copyFallback:'Select the link and press Copy.',
-  defaultMessage:'This flower is just for you ❤️'
+ // Spiral heart of the rose.
+ for(let i=0;i<230;i++){
+  const a=i*.19+t*.00025,r=2+i*.105;
+  const x=Math.cos(a)*r,y=Math.sin(a)*r*.82;
+  ctx.fillStyle=i%5===0?'#fff0e5':(i%2?'#ff8eb8':'#ff3b82');
+  ctx.shadowBlur=mode==='dots'?9:0;ctx.shadowColor='#ff7aaa';
+  if(mode==='ascii'){ctx.font='8px monospace';ctx.fillText(['#','%','^','0','1'][i%5],x,y)}
+  else{ctx.beginPath();ctx.arc(x,y,.8+(i%3)*.3,0,Math.PI*2);ctx.fill()}
  }
-};
-function applyLanguage(){
- const t=translations[uiLang]||translations.uz;
- $('openGenerator').textContent=t.link;
- $('ascii').textContent=mode==='dots'?(uiLang==='uz'?'NUQTALAR':uiLang==='ru'?'ТОЧКИ':'PARTICLES'):'# % ^ 0 1';
- $('voice').textContent=bgMusic && !bgMusic.paused?t.musicOn:t.music;
- $('replay').textContent=t.replay;
- document.querySelector('.gen-title').textContent=t.genTitle;
- document.querySelector('label[for="genName"]').textContent=t.nameLabel;
- $('genName').placeholder=t.namePlaceholder;
- document.querySelector('label[for="genMessage"]').textContent=t.messageLabel;
- $('genMessage').placeholder=t.messagePlaceholder;
- document.querySelectorAll('.generator-card > label')[2].textContent=t.modeLabel;
- document.querySelector('label[for="genFlower"]').textContent=t.flowerLabel;
- document.querySelector('label[for="genColor"]').textContent=t.colorLabel;
- document.querySelector('label[for="genLang"]').textContent=t.langLabel;
- $('createLink').textContent=t.create;
- document.querySelector('.generated-caption').textContent=t.ready;
- $('copyLink').textContent=t.copy;
- if(!$('copyStatus').dataset.changed) $('copyStatus').textContent=t.copyHelp;
+ ctx.restore();
+ // AL-QAMIR signature, placed beside the bloom.
+ ctx.save();ctx.textAlign='left';ctx.font='600 11px Arial';
+ ctx.fillStyle='#f7d4e4';ctx.shadowColor='#ff62a0';ctx.shadowBlur=13;
+ ctx.fillText('AL-QAMIR',cx+R*.78,cy+R*.18);
+ ctx.font='8px Arial';ctx.fillStyle='#d8a9c0';ctx.fillText('A GIFT FROM THE HEART',cx+R*.78,cy+R*.18+15);
+ ctx.restore();ctx.shadowBlur=0;
 }
 
+const flowerHost=$('flower3d');
+const roseColors={
+ pink:['#ff3b88','#ff6fa8','#ff9fc4','#ffd0df','#f8e7ef'],
+ red:['#9e092e','#d41442','#f13d5d','#ff8290','#ffd0d0'],
+ white:['#b9a9c6','#ded5e5','#f5edf6','#ffffff','#fff8fd'],
+ purple:['#57227f','#8136b5','#ae63d8','#d4a0ef','#f0dcff'],
+ blue:['#164d91','#2379c4','#54a9e8','#9bd9ff','#e1f5ff']
+};
+function seeded(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function buildRosePointCloud(){
+ if(!flowerScene)return;
+ if(flowerPoints){flowerScene.remove(flowerPoints);flowerPoints.geometry.dispose();flowerPoints.material.dispose();}
+ const positions=[],colors=[],sizes=[];
+ const palette=roseColors[flowerColor]||roseColors.pink;
+ const add=(x,y,z,color,size=2.2)=>{
+  positions.push(x,y,z);
+  const c=new THREE.Color(color);colors.push(c.r,c.g,c.b);sizes.push(size);
+ };
+ // 3D rose head: many curved, overlapping petal ribbons arranged in a spiral.
+ const layers=9;
+ let index=0;
+ for(let layer=0;layer<layers;layer++){
+  const count=1450-layer*65;
+  const baseR=.16+layer*.105;
+  const petalLen=.34+layer*.045;
+  const petalWidth=.16+layer*.012;
+  for(let i=0;i<count;i++){
+   const u=seeded(index++), v=seeded(index++);
+   const a=(i/count)*Math.PI*2+layer*.53;
+   const along=(v-.5)*2;
+   const across=(u-.5)*2;
+   const radius=baseR+along*petalLen*.46;
+   // Curved, cupped petal surface with a raised outer rim.
+   const side=across*petalWidth*(.78+.22*Math.cos(along*Math.PI));
+   const curl=.09*(along*along)+.10*(across*across)+.055*Math.sin(along*Math.PI);
+   const x=Math.cos(a)*radius-Math.sin(a)*side;
+   const z=Math.sin(a)*radius+Math.cos(a)*side;
+   const y=.34+curl+layer*.012+Math.sin(a*3+layer)*.018;
+   const shade=palette[(Math.floor(u*5)+layer)%palette.length];
+   add(x,y,z,shade,1.5+seeded(index++)*2.0);
+  }
+ }
+ // Dense curled centre, also made entirely of luminous points.
+ for(let i=0;i<1800;i++){
+  const a=i*.19, r=.012+i*.00031;
+  const y=.48+Math.sin(i*.09)*.025;
+  add(Math.cos(a)*r,y,Math.sin(a)*r,palette[i%palette.length],1.5+seeded(i+9000)*1.8);
+ }
+ // Stem: a gently curved cylindrical point cloud.
+ for(let i=0;i<1900;i++){
+  const t=i/1899, a=i*2.39996, r=.027+seeded(i+44)*.018;
+  const x=Math.cos(a)*r+Math.sin(t*5)*.035;
+  const z=Math.sin(a)*r;
+  const y=.24-t*1.48;
+  add(x,y,z,i%7===0?'#c3ffdb':(i%3===0?'#71f5a8':'#22c978'),1.5+seeded(i+88)*1.2);
+ }
+ // Two pointed leaves made from curved point surfaces and a bright central vein.
+ for(let side of [-1,1]){
+  const y0=side<0?-.34:-.83, angle=side<0?-.78:.72;
+  for(let i=0;i<950;i++){
+   const u=seeded(i+side*3000),v=seeded(i+side*5000);
+   const along=u, across=(v-.5)*2;
+   const len=.48, width=.17*Math.sin(Math.PI*along);
+   const lx=along*len, ly=across*width;
+   const ca=Math.cos(angle),sa=Math.sin(angle);
+   const x=side*(.025+lx*ca-ly*sa);
+   const y=y0+lx*sa+ly*ca;
+   const z=across*.035+Math.sin(along*Math.PI)*.025;
+   add(x,y,z,i%5===0?'#c8ffe0':'#35e58d',1.3+seeded(i+7000)*1.3);
+  }
+  for(let i=0;i<150;i++){
+   const u=i/149, lx=u*.46, ca=Math.cos(angle),sa=Math.sin(angle);
+   add(side*(.025+lx*ca),y0+lx*sa,.045,'#d7ffe8',1.6);
+  }
+ }
+ const geo=new THREE.BufferGeometry();
+ geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+ geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+ geo.setAttribute('size',new THREE.Float32BufferAttribute(sizes,1));
+ const mat=new THREE.PointsMaterial({size:2.2,vertexColors:true,transparent:true,opacity:.98,depthWrite:false,sizeAttenuation:true,blending:THREE.AdditiveBlending});
+ flowerPoints=new THREE.Points(geo,mat);flowerScene.add(flowerPoints);
+}
+function initFlower3D(){
+ if(!window.THREE||!flowerHost)return;
+ const rect=flowerHost.getBoundingClientRect();
+ flowerScene=new THREE.Scene();
+ flowerCamera=new THREE.PerspectiveCamera(36,Math.max(1,rect.width)/Math.max(1,rect.height),.1,100);
+ flowerCamera.position.set(0,-.02,5.2);
+ flowerRenderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
+ flowerRenderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+ flowerRenderer.setSize(Math.max(1,rect.width),Math.max(1,rect.height),false);
+ flowerRenderer.setClearColor(0x000000,0);
+ flowerHost.appendChild(flowerRenderer.domElement);
+ buildRosePointCloud();
+ flowerHost.addEventListener('pointerdown',e=>{
+  flowerDragging=true;flowerLast={x:e.clientX,y:e.clientY};
+  flowerHost.setPointerCapture(e.pointerId);
+ });
+ flowerHost.addEventListener('pointermove',e=>{
+  if(!flowerDragging)return;
+  flowerTarget.y+=(e.clientX-flowerLast.x)*.009;
+  flowerTarget.x=Math.max(-1.2,Math.min(1.2,flowerTarget.x+(e.clientY-flowerLast.y)*.007));
+  flowerLast={x:e.clientX,y:e.clientY};
+ });
+ const stop=()=>flowerDragging=false;
+ flowerHost.addEventListener('pointerup',stop);flowerHost.addEventListener('pointercancel',stop);
+ flowerHost.addEventListener('wheel',e=>{
+  flowerCamera.position.z=Math.max(3.7,Math.min(7,flowerCamera.position.z+e.deltaY*.0025));
+ },{passive:true});
+ const clock=new THREE.Clock();
+ function renderFlower(){
+  requestAnimationFrame(renderFlower);
+  if(!flowerRenderer)return;
+  const t=clock.getElapsedTime();
+  flowerCurrent.x+=(flowerTarget.x-flowerCurrent.x)*.09;
+  flowerCurrent.y+=(flowerTarget.y-flowerCurrent.y)*.09;
+  if(flowerPoints){
+   flowerPoints.rotation.set(flowerCurrent.x,flowerCurrent.y+Math.sin(t*.45)*.025,Math.sin(t*.7)*.012);
+   flowerPoints.position.y=Math.sin(t*.9)*.018;
+  }
+  flowerRenderer.render(flowerScene,flowerCamera);
+ }
+ renderFlower();
+ resizeFlower3D();
+}
+function resizeFlower3D(){
+ if(!flowerRenderer||!flowerCamera||!flowerHost)return;
+ const r=flowerHost.getBoundingClientRect();
+ flowerRenderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);
+ flowerCamera.aspect=Math.max(1,r.width)/Math.max(1,r.height);
+ flowerCamera.updateProjectionMatrix();
+}
+function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2){flowerHost.style.opacity='1';}else{flowerHost.style.opacity='0';}raf=requestAnimationFrame(animate)}
+function clearStages(){stageTimers.forEach(clearTimeout);stageTimers=[]}
 function run(){
- clearStages();
- phase=0;
- $('envelope').classList.remove('show','open');
- $('scriptname').classList.remove('show');
- $('bottomname').classList.remove('show');
- $('brandMark').classList.remove('show');
- const params=new URLSearchParams(location.search);
- const n=(params.get('name')||'Madina').trim()||'Madina';
- $('scriptname').textContent=n;
- $('bottomname').textContent=n;
- stageTimers.push(setTimeout(()=>$('envelope').classList.add('show'),300));
- stageTimers.push(setTimeout(()=>$('envelope').classList.add('open'),2300));
- stageTimers.push(setTimeout(()=>{$('envelope').classList.remove('show');phase=1},4200));
- stageTimers.push(setTimeout(()=>$('scriptname').classList.add('show'),5200));
- stageTimers.push(setTimeout(()=>{
-  $('scriptname').classList.remove('show');
-  phase=2;
-  $('bottomname').classList.add('show');
-  $('brandMark').classList.add('show');
- },10800));
+ clearStages();phase=0;
+ $('envelope').classList.remove('show','open');$('scriptname').classList.remove('show');$('bottomname').classList.remove('show');
+ const params=new URLSearchParams(location.search);const n=(params.get('name')||$('genName').value||'Siz uchun').trim();$('scriptname').textContent=n;$('bottomname').textContent=n;
+ stageTimers.push(setTimeout(()=>$('envelope').classList.add('show'),250));
+ stageTimers.push(setTimeout(()=>$('envelope').classList.add('open'),1550));
+ stageTimers.push(setTimeout(()=>{$('envelope').classList.remove('show');phase=1},2900));
+ stageTimers.push(setTimeout(()=>$('scriptname').classList.add('show'),4700));
+ stageTimers.push(setTimeout(()=>{$('scriptname').classList.remove('show');phase=2;$('bottomname').classList.add('show');$('brandMark').classList.add('show')},7900));
 }
 $('replay').addEventListener('click',run);
-$('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii');applyLanguage()});
+$('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii')});
 const bgMusic=$('bgMusic');
 $('voice').addEventListener('click',async()=>{
- if(bgMusic.paused){try{await bgMusic.play();$('voice').textContent=(translations[uiLang]||translations.uz).musicOn;$('voice').classList.add('active')}catch(e){$('voice').textContent='MUSIC.MP3 KERAK'}}else{bgMusic.pause();$('voice').textContent=(translations[uiLang]||translations.uz).music;$('voice').classList.remove('active')}
+ if(bgMusic.paused){try{await bgMusic.play();$('voice').textContent='♫ MUSIQA ON';$('voice').classList.add('active')}catch(e){$('voice').textContent='MUSIC.MP3 KERAK'}}else{bgMusic.pause();$('voice').textContent='♫ MUSIQA';$('voice').classList.remove('active')}
 });
 const panel=$('generatorPanel');
 $('openGenerator').addEventListener('click',()=>{panel.classList.remove('hidden');$('genName').focus()});
@@ -306,45 +377,26 @@ let selectedMode='dots';
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
  selectedMode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));
 }));
-$('genFlower').addEventListener('change',e=>{flowerType=e.target.value});
-$('genColor').addEventListener('change',e=>{flowerColor=e.target.value});
-$('genLang').addEventListener('change',e=>{uiLang=e.target.value;applyLanguage()});
 $('createLink').addEventListener('click',()=>{
  const n=$('genName').value.trim();if(!n){$('genName').focus();$('genName').style.borderColor='#ff6c91';return}
  const message=$('genMessage').value.trim();
  const url=new URL(window.location.href);url.search='';url.hash='';
- url.searchParams.set('name',n);if(message)url.searchParams.set('message',message);url.searchParams.set('mode',selectedMode);
-  url.searchParams.set('flower',$('genFlower').value);
-  url.searchParams.set('color',$('genColor').value);
-  url.searchParams.set('lang',$('genLang').value);
- $('generatedUrl').value=url.toString();$('generatedWrap').classList.remove('hidden');$('copyStatus').dataset.changed='';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copyHelp;
+ url.searchParams.set('name',n);if(message)url.searchParams.set('message',message);url.searchParams.set('mode',selectedMode);url.searchParams.set('color',$('genColor').value);
+ $('generatedUrl').value=url.toString();$('generatedWrap').classList.remove('hidden');$('copyStatus').textContent='Havolani nusxalab, Telegram yoki Instagram orqali yuboring.';
 });
 $('copyLink').addEventListener('click',async()=>{
  const field=$('generatedUrl');field.select();field.setSelectionRange(0,field.value.length);
- try{await navigator.clipboard.writeText(field.value);$('copyStatus').dataset.changed='1';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copied}
- catch(e){try{document.execCommand('copy');$('copyStatus').dataset.changed='1';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copied}catch(_){$('copyStatus').dataset.changed='1';$('copyStatus').textContent=(translations[uiLang]||translations.uz).copyFallback}}
+ try{await navigator.clipboard.writeText(field.value);$('copyStatus').textContent='Havola nusxalandi! Endi yuborishingiz mumkin ✓'}
+ catch(e){try{document.execCommand('copy');$('copyStatus').textContent='Havola nusxalandi! ✓'}catch(_){$('copyStatus').textContent='Havolani belgilang va Copy qiling.'}}
 });
 function loadPersonalLink(){
- const p=new URLSearchParams(location.search);
- const n=(p.get('name')||'Madina').trim()||'Madina';
- const m=p.get('message'),mde=p.get('mode');
-  flowerType=p.get('flower')||'rose';
-  flowerColor=p.get('color')||'pink';
-  uiLang=p.get('lang')||'uz';
-  if(!flowerPalettes[flowerColor])flowerColor='pink';
-  if(!['rose','tulip','sunflower','cherry','lily'].includes(flowerType))flowerType='rose';
-  if(!['uz','ru','en'].includes(uiLang))uiLang='uz';
-  applyLanguage();
-  $('genFlower').value=flowerType;
-  $('genColor').value=flowerColor;
-  $('genLang').value=uiLang;
- $('genName').value=n;
+ const p=new URLSearchParams(location.search),n=p.get('name'),m=p.get('message'),mde=p.get('mode'),col=p.get('color');
+ if(n){$('genName').value=n}
  if(m){$('genMessage').value=m;$('personalMessage').textContent=m;$('personalMessage').classList.add('show')}
-  else $('genMessage').value=(translations[uiLang]||translations.uz).defaultMessage;
+ if(col&&roseColors[col]){flowerColor=col;$('genColor').value=col;buildRosePointCloud()}
  if(mde==='ascii'){mode='ascii';selectedMode='ascii';$('ascii').textContent='# % ^ 0 1';$('ascii').classList.add('active')}
- // Sahifa ochilishi bilan animatsiya avtomatik boshlanadi.
- run();
+ if(n)run();
 }
-new ResizeObserver(sizeCanvas).observe($('scene'));window.addEventListener('resize',sizeCanvas);
-sizeCanvas();loadPersonalLink();animate(0);
+new ResizeObserver(()=>{sizeCanvas();resizeFlower3D()}).observe($('scene'));window.addEventListener('resize',()=>{sizeCanvas();resizeFlower3D()});
+sizeCanvas();initFlower3D();loadPersonalLink();animate(0);
 </script></body></html>

@@ -9,7 +9,7 @@
 .pill.active{border-color:#d9a36d;color:#ffe0b5;box-shadow:0 0 17px #ffbb7433}
 .scene{width:min(92vw,620px);height:min(82svh,780px);position:relative;display:flex;align-items:center;justify-content:center}
 #fx{position:absolute;inset:0;width:100%;height:100%}
-.envelope{position:absolute;width:min(88%,510px);aspect-ratio:1.8;opacity:0;transform:scale(.82);transition:opacity .8s,transform .8s;filter:drop-shadow(0 0 12px #ffc06b99)}
+.envelope{display:none;position:absolute;width:min(88%,510px);aspect-ratio:1.8;opacity:0;transform:scale(.82);transition:opacity .8s,transform .8s;filter:drop-shadow(0 0 12px #ffc06b99)}
 .envelope.show{opacity:1;transform:scale(1)}
 .envbody{position:absolute;inset:0;border:3px solid #ffd18a;border-radius:5px;background:linear-gradient(140deg,#42262b,#1c1421 55%,#7c4d43);box-shadow:inset 0 0 25px #ffc47744}
 .envbody:before,.envbody:after{content:"";position:absolute;inset:0}
@@ -136,6 +136,57 @@ function sizeCanvas(){
 }
 function dims(){let r=fx.getBoundingClientRect();return {w:r.width,h:r.height,cx:r.width/2,cy:r.height*.43}}
 function drawStars(t){sctx.clearRect(0,0,W,H);for(const p of stars){sctx.globalAlpha=.24+.62*(.5+.5*Math.sin(t*.001+p.p));sctx.fillStyle='#f0e5ff';sctx.beginPath();sctx.arc(p.x,p.y,p.r,0,Math.PI*2);sctx.fill()}sctx.globalAlpha=1}
+function drawEnvelope(t){
+ const {w,h,cx,cy}=dims();
+ const ew=Math.min(w*.78,470), eh=ew/1.8, left=cx-ew/2, top=cy-eh*.48;
+ const points=[];
+ const addLine=(x1,y1,x2,y2,steps=90)=>{
+  for(let i=0;i<=steps;i++){const q=i/steps;points.push([x1+(x2-x1)*q,y1+(y2-y1)*q]);}
+ };
+ const r=Math.min(ew*.06,18);
+ addLine(left+r,top,left+ew-r,top);
+ addLine(left+ew,top+r,left+ew,top+eh-r);
+ addLine(left+ew-r,top+eh,left+r,top+eh);
+ addLine(left,top+eh-r,left,top+r);
+ addLine(left,top+r,left+r,top);
+ addLine(left,top+eh-r,left+ew/2,top+eh*.48);
+ addLine(left+ew,top+eh-r,left+ew/2,top+eh*.48);
+ addLine(left,top+r,left+ew/2,top+eh*.58);
+ addLine(left+ew,top+r,left+ew/2,top+eh*.58);
+ const opened=$('envelope').classList.contains('open');
+ const density=opened?1:0.58;
+ const cols=Math.round(44+(opened?18:0)), rows=Math.round(19+(opened?8:0));
+ for(let row=0;row<=rows;row++)for(let col=0;col<=cols;col++){
+  // Before opening, show a lighter outline; after opening, fill the envelope with more dots.
+  if((row*cols+col)% (opened?1:3)===0){
+   const x=left+col/cols*ew, y=top+row/rows*eh;
+   points.push([x,y]);
+  }
+ }
+ // Extra shimmering particles gather inside the opened invitation.
+ if(opened){
+  const extra=360;
+  for(let i=0;i<extra;i++){
+   const q=i/extra, x=left+ew*(.08+.84*((i*37)%extra)/extra);
+   const y=top+eh*(.12+.76*((i*97)%extra)/extra);
+   points.push([x,y]);
+  }
+ }
+ ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+ for(let i=0;i<points.length;i++){
+  const [x,y]=points[i],pulse=.55+.45*Math.sin(t*.003+i*.31);
+  if(mode==='ascii'){
+   ctx.font=`${7+(i%3)}px monospace`;
+   ctx.fillStyle=i%5===0?`rgba(255,225,180,${pulse})`:`rgba(255,116,174,${pulse})`;
+   ctx.fillText(i%2?'1':'0',x,y);
+  }else{
+   ctx.fillStyle=i%7===0?`rgba(255,236,204,${pulse})`:`rgba(255,132,184,${pulse})`;
+   ctx.shadowColor='#ff75ad';ctx.shadowBlur=7;
+   ctx.beginPath();ctx.arc(x,y,1+(i%3)*.35,0,Math.PI*2);ctx.fill();
+  }
+ }
+ ctx.restore();
+}
 function drawGalaxy(t){
  const {w,h,cx,cy}=dims(),max=Math.min(w,h)*.36;ctx.save();ctx.translate(cx,cy);
  // Multi-arm spiral with a dense luminous core.
@@ -378,7 +429,9 @@ function initFlower3D(){
  function renderFlower(){
   flowerRaf=0;
   if(!flowerActive || document.hidden || !flowerRenderer)return;
-  flowerCurrent.y+=(flowerTarget.y-flowerCurrent.y)*.09;
+  // Gentle automatic horizontal rotation; manual dragging remains available.
+  if(!flowerDragging) flowerTarget.y+=0.0018;
+  flowerCurrent.y+=(flowerTarget.y-flowerCurrent.y)*.045;
   if(flowerPoints) flowerPoints.rotation.set(0,flowerCurrent.y,0);
   flowerRenderer.render(flowerScene,flowerCamera);
   flowerRaf=requestAnimationFrame(renderFlower);
@@ -401,6 +454,7 @@ function resizeFlower3D(){
 }
 function animate(t){
  ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);
+ if(phase===0)drawEnvelope(t);
  if(phase===1)drawGalaxy(t);
  const showFlower=phase===2;
  flowerHost.style.opacity=showFlower?'1':'0';
@@ -421,7 +475,7 @@ function run(){
  stageTimers.push(setTimeout(()=>{$('scriptname').classList.remove('show');phase=2;$('bottomname').classList.add('show');$('brandMark').classList.add('show')},7900));
 }
 $('replay').addEventListener('click',run);
-$('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'# % ^ 0 1';$('ascii').classList.toggle('active',mode==='ascii')});
+$('ascii').addEventListener('click',()=>{mode=mode==='dots'?'ascii':'dots';$('ascii').textContent=mode==='dots'?'✧ NUQTALAR':'0 1 BINARY';$('ascii').classList.toggle('active',mode==='ascii')});
 const bgMusic=$('bgMusic');
 $('voice').addEventListener('click',async()=>{
  if(bgMusic.paused){try{await bgMusic.play();$('voice').textContent='♫ MUSIQA ON';$('voice').classList.add('active')}catch(e){$('voice').textContent='MUSIC.MP3 KERAK'}}else{bgMusic.pause();$('voice').textContent='♫ MUSIQA';$('voice').classList.remove('active')}

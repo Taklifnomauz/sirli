@@ -73,7 +73,7 @@
 @media(max-width:480px){.controls{top:9px;gap:5px}.controls .pill{padding:10px 11px;font-size:9px;letter-spacing:1px}.scene{height:78svh}.entry{bottom:12px}.generator-card{padding:28px 18px 20px}}
 
 
-#flower3d{opacity:0;transition:opacity .8s;position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:auto;touch-action:none}
+#flower3d{opacity:0;visibility:visible;transition:opacity .8s;position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:auto;touch-action:none}
 #flower3d canvas{display:block;width:100%;height:100%}
 #fx{z-index:2;pointer-events:none}
 .envelope,.scriptname,.bottomname,.brand-mark,.personal-message{z-index:3}
@@ -125,7 +125,7 @@ let flowerColor='pink', flowerScene=null, flowerCamera=null, flowerRenderer=null
 let flowerTarget={x:-.10,y:0}, flowerCurrent={x:-.10,y:0}, flowerDragging=false, flowerLast={x:0,y:0};
 let stars=[],audioContext=null,oscillator=null,gainNode=null;
 function sizeCanvas(){
- const rect=fx.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2); W=innerWidth;H=innerHeight;
+ const rect=fx.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,1.25); W=innerWidth;H=innerHeight;
  starCanvas.width=Math.round(W*dpr);starCanvas.height=Math.round(H*dpr);
  fx.width=Math.max(1,Math.round(rect.width*dpr));fx.height=Math.max(1,Math.round(rect.height*dpr));
  sctx.setTransform(dpr,0,0,dpr,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -241,7 +241,7 @@ function buildRosePointCloud(){
  const layers=9;
  let index=0;
  for(let layer=0;layer<layers;layer++){
-  const count=1450-layer*65;
+  const count=620-layer*25;
   const baseR=.16+layer*.105;
   const petalLen=.34+layer*.045;
   const petalWidth=.16+layer*.012;
@@ -262,13 +262,13 @@ function buildRosePointCloud(){
   }
  }
  // Dense curled centre, also made entirely of luminous points.
- for(let i=0;i<1800;i++){
+ for(let i=0;i<700;i++){
   const a=i*.19, r=.012+i*.00031;
   const y=.48+Math.sin(i*.09)*.025;
   add(Math.cos(a)*r,y,Math.sin(a)*r,palette[i%palette.length],1.5+seeded(i+9000)*1.8);
  }
  // Stem: a gently curved cylindrical point cloud.
- for(let i=0;i<1900;i++){
+ for(let i=0;i<850;i++){
   const t=i/1899, a=i*2.39996, r=.027+seeded(i+44)*.018;
   const x=Math.cos(a)*r+Math.sin(t*5)*.035;
   const z=Math.sin(a)*r;
@@ -278,7 +278,7 @@ function buildRosePointCloud(){
  // Two pointed leaves made from curved point surfaces and a bright central vein.
  for(let side of [-1,1]){
   const y0=side<0?-.34:-.83, angle=side<0?-.78:.72;
-  for(let i=0;i<950;i++){
+  for(let i=0;i<420;i++){
    const u=seeded(i+side*3000),v=seeded(i+side*5000);
    const along=u, across=(v-.5)*2;
    const len=.48, width=.17*Math.sin(Math.PI*along);
@@ -289,7 +289,7 @@ function buildRosePointCloud(){
    const z=across*.035+Math.sin(along*Math.PI)*.025;
    add(x,y,z,i%5===0?'#c8ffe0':'#35e58d',1.3+seeded(i+7000)*1.3);
   }
-  for(let i=0;i<150;i++){
+  for(let i=0;i<80;i++){
    const u=i/149, lx=u*.46, ca=Math.cos(angle),sa=Math.sin(angle);
    add(side*(.025+lx*ca),y0+lx*sa,.045,'#d7ffe8',1.6);
   }
@@ -306,13 +306,14 @@ function initFlower3D(){
  const rect=flowerHost.getBoundingClientRect();
  flowerScene=new THREE.Scene();
  flowerCamera=new THREE.PerspectiveCamera(36,Math.max(1,rect.width)/Math.max(1,rect.height),.1,100);
- flowerCamera.position.set(0,-.02,5.2);
- flowerRenderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
- flowerRenderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+ flowerCamera.position.set(0,0,5.0);
+ flowerRenderer=new THREE.WebGLRenderer({alpha:true,antialias:false,powerPreference:'low-power'});
+ flowerRenderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
  flowerRenderer.setSize(Math.max(1,rect.width),Math.max(1,rect.height),false);
  flowerRenderer.setClearColor(0x000000,0);
  flowerHost.appendChild(flowerRenderer.domElement);
  buildRosePointCloud();
+ requestAnimationFrame(resizeFlower3D);
  flowerHost.addEventListener('pointerdown',e=>{
   flowerDragging=true;flowerLast={x:e.clientX,y:e.clientY};
   flowerHost.setPointerCapture(e.pointerId);
@@ -320,7 +321,7 @@ function initFlower3D(){
  flowerHost.addEventListener('pointermove',e=>{
   if(!flowerDragging)return;
   flowerTarget.y+=(e.clientX-flowerLast.x)*.009;
-  flowerTarget.x=Math.max(-1.2,Math.min(1.2,flowerTarget.x+(e.clientY-flowerLast.y)*.007));
+  flowerTarget.x=0;
   flowerLast={x:e.clientX,y:e.clientY};
  });
  const stop=()=>flowerDragging=false;
@@ -336,8 +337,8 @@ function initFlower3D(){
   flowerCurrent.x+=(flowerTarget.x-flowerCurrent.x)*.09;
   flowerCurrent.y+=(flowerTarget.y-flowerCurrent.y)*.09;
   if(flowerPoints){
-   flowerPoints.rotation.set(flowerCurrent.x,flowerCurrent.y+Math.sin(t*.45)*.025,Math.sin(t*.7)*.012);
-   flowerPoints.position.y=Math.sin(t*.9)*.018;
+   flowerPoints.rotation.set(0,flowerCurrent.y,0);
+   flowerPoints.position.y=0;
   }
   flowerRenderer.render(flowerScene,flowerCamera);
  }
@@ -351,7 +352,7 @@ function resizeFlower3D(){
  flowerCamera.aspect=Math.max(1,r.width)/Math.max(1,r.height);
  flowerCamera.updateProjectionMatrix();
 }
-function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2){flowerHost.style.opacity='1';}else{flowerHost.style.opacity='0';}raf=requestAnimationFrame(animate)}
+function animate(t){ctx.clearRect(0,0,fx.clientWidth,fx.clientHeight);drawStars(t);if(phase===1)drawGalaxy(t);if(phase===2){flowerHost.style.opacity='1';flowerHost.style.visibility='visible';}else{flowerHost.style.opacity='0';}raf=requestAnimationFrame(animate)}
 function clearStages(){stageTimers.forEach(clearTimeout);stageTimers=[]}
 function run(){
  clearStages();phase=0;
@@ -395,7 +396,7 @@ function loadPersonalLink(){
  if(m){$('genMessage').value=m;$('personalMessage').textContent=m;$('personalMessage').classList.add('show')}
  if(col&&roseColors[col]){flowerColor=col;$('genColor').value=col;buildRosePointCloud()}
  if(mde==='ascii'){mode='ascii';selectedMode='ascii';$('ascii').textContent='# % ^ 0 1';$('ascii').classList.add('active')}
- if(n)run();
+ run();
 }
 new ResizeObserver(()=>{sizeCanvas();resizeFlower3D()}).observe($('scene'));window.addEventListener('resize',()=>{sizeCanvas();resizeFlower3D()});
 sizeCanvas();initFlower3D();loadPersonalLink();animate(0);
